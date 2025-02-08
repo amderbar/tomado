@@ -1,0 +1,14 @@
+{
+    "name": "TomaDo Dev Container",
+    "image": "mcr.microsoft.com/vscode/devcontainers/base:0-jammy",
+    "features": {
+        "ghcr.io/devcontainers-extra/features/haskell:2": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "haskell.haskell"
+            ]
+        }
+    }
+}
