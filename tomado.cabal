@@ -4,11 +4,11 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 
-name:           tomatodo
+name:           tomado
 version:        0.1.0.0
-description:    Please see the README on Github at <https://github.com/amderbar/tomatodo#readme>
-homepage:       https://github.com/amderbar/tomatodo#readme
-bug-reports:    https://github.com/amderbar/tomatodo/issues
+description:    Please see the README on Github at <https://github.com/amderbar/tomado#readme>
+homepage:       https://github.com/amderbar/tomado#readme
+bug-reports:    https://github.com/amderbar/tomado/issues
 author:         amderbar
 maintainer:     amderbar@gmail.com
 copyright:      amderbar
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/amderbar/tomatodo
+  location: https://github.com/amderbar/tomado
 
 library
   exposed-modules:
@@ -30,9 +30,9 @@ library
       Types
       Util
   other-modules:
-      Paths_tomatodo
+      Paths_tomado
   autogen-modules:
-      Paths_tomatodo
+      Paths_tomado
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -41,12 +41,12 @@ library
     , rio >=0.1.12.0
   default-language: Haskell2010
 
-executable tomatodo-exe
+executable tomado-exe
   main-is: Main.hs
   other-modules:
-      Paths_tomatodo
+      Paths_tomado
   autogen-modules:
-      Paths_tomatodo
+      Paths_tomado
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -54,17 +54,17 @@ executable tomatodo-exe
       base >=4.11 && <10
     , optparse-simple
     , rio >=0.1.12.0
-    , tomatodo
+    , tomado
   default-language: Haskell2010
 
-test-suite tomatodo-test
+test-suite tomado-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
       UtilSpec
-      Paths_tomatodo
+      Paths_tomado
   autogen-modules:
-      Paths_tomatodo
+      Paths_tomado
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -72,5 +72,5 @@ test-suite tomatodo-test
       base >=4.11 && <10
     , hspec
     , rio >=0.1.12.0
-    , tomatodo
+    , tomado
   default-language: Haskell2010

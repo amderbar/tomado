@@ -6,12 +6,12 @@ import Import
 import Run
 import RIO.Process
 import Options.Applicative.Simple
-import qualified Paths_tomatodo
+import qualified Paths_tomado
 
 main :: IO ()
 main = do
   (options, ()) <- simpleOptions
-    $(simpleVersion Paths_tomatodo.version)
+    $(simpleVersion Paths_tomado.version)
     "Header for command line arguments"
     "Program description, also for command line arguments"
     (Options

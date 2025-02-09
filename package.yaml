@@ -1,6 +1,6 @@
-name:                tomatodo
+name:                tomado
 version:             0.1.0.0
-github:              amderbar/tomatodo
+github:              amderbar/tomado
 license:             BSD-3-Clause
 author:              amderbar
 maintainer:          amderbar@gmail.com
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/amderbar/tomatodo#readme>
+description:         Please see the README on Github at <https://github.com/amderbar/tomado#readme>
 
 dependencies:
 - base >= 4.11 && < 10
@@ -38,11 +38,11 @@ library:
   source-dirs: src
 
 executables:
-  tomatodo-exe:
+  tomado-exe:
     main:                Main.hs
     source-dirs:         app
     dependencies:
-    - tomatodo
+    - tomado
     - optparse-simple
 
     ghc-options:
@@ -51,11 +51,11 @@ executables:
     - -with-rtsopts=-N
 
 tests:
-  tomatodo-test:
+  tomado-test:
     main:                Spec.hs
     source-dirs:         test
     dependencies:
-    - tomatodo
+    - tomado
     - hspec
 
     ghc-options:
