@@ -6,8 +6,14 @@
     },
     "customizations": {
         "vscode": {
+            "settings": {
+                "haskell.plugin.semanticTokens.globalOn": true
+            },
             "extensions": [
-                "haskell.haskell"
+                "haskell.haskell",
+                "dbcode.dbcode",
+                "GitHub.copilot",
+                "GitHub.copilot-chat"
             ]
         }
     }
