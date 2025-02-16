@@ -25,6 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Capability.TaskRepository
+      Data.TomadoTask
+      Database.Schema
+      Database.Util
       Import
       Run
       Types
@@ -38,7 +42,11 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , rio >=0.1.12.0
+    , sqlite-simple
   default-language: Haskell2010
 
 executable tomado-exe
@@ -52,8 +60,12 @@ executable tomado-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , optparse-simple
     , rio >=0.1.12.0
+    , sqlite-simple
     , tomado
   default-language: Haskell2010
 
@@ -61,6 +73,8 @@ test-suite tomado-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      SampleSpec
+      Test.TaskRepositoryDb
       UtilSpec
       Paths_tomado
   autogen-modules:
@@ -70,7 +84,12 @@ test-suite tomado-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
     , hspec
+    , hspec-discover
     , rio >=0.1.12.0
+    , sqlite-simple
     , tomado
   default-language: Haskell2010

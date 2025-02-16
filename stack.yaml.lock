@@ -3,7 +3,28 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: beam-core-0.10.3.1@sha256:5dd5985423572523b931a39579237180142ab02454359862fb3a6108534418dc,5291
+    pantry-tree:
+      sha256: 4940c994e2766feeff17903d75555b848996b076687aea5370c43c526c11b72b
+      size: 2705
+  original:
+    hackage: beam-core-0.10.3.1@sha256:5dd5985423572523b931a39579237180142ab02454359862fb3a6108534418dc,5291
+- completed:
+    hackage: beam-migrate-0.5.3.1@sha256:d009867b13077ec7ad148752a66f3a7d9d45438c7be287ce10759e49d640a66a,4566
+    pantry-tree:
+      sha256: 05471789e982b671e423ab14b7b466cce0c44bba66e3a20debd5153b2e610de5
+      size: 1722
+  original:
+    hackage: beam-migrate-0.5.3.1@sha256:d009867b13077ec7ad148752a66f3a7d9d45438c7be287ce10759e49d640a66a,4566
+- completed:
+    hackage: beam-sqlite-0.5.4.0@sha256:03a879185755ef5d47eeda97ae6c173d67d5110fafb612db8b6ea8ffff00f8ea,3389
+    pantry-tree:
+      sha256: a2a9cb3162ec530f9e8c7288ccfa9dc1f80d2c86c0e91f2e053160549695d442
+      size: 988
+  original:
+    hackage: beam-sqlite-0.5.4.0@sha256:03a879185755ef5d47eeda97ae6c173d67d5110fafb612db8b6ea8ffff00f8ea,3389
 snapshots:
 - completed:
     sha256: a81fb3877c4f9031e1325eb3935122e608d80715dc16b586eb11ddbff8671ecd

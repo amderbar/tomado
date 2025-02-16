@@ -40,7 +40,10 @@ packages:
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
-# extra-deps: []
+extra-deps:
+  - beam-core-0.10.3.1@sha256:5dd5985423572523b931a39579237180142ab02454359862fb3a6108534418dc,5291
+  - beam-migrate-0.5.3.1@sha256:d009867b13077ec7ad148752a66f3a7d9d45438c7be287ce10759e49d640a66a,4566
+  - beam-sqlite-0.5.4.0@sha256:03a879185755ef5d47eeda97ae6c173d67d5110fafb612db8b6ea8ffff00f8ea,3389
 
 # Override default flag values for project packages and extra-deps
 # flags: {}
