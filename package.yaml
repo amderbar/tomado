@@ -40,6 +40,8 @@ ghc-options:
 
 library:
   source-dirs: src
+  default-extensions:
+    - OverloadedStrings
 
 executables:
   tomado-exe:
