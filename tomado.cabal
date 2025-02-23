@@ -26,6 +26,9 @@ source-repository head
 library
   exposed-modules:
       Capability.TaskRepository
+      Data.Comment
+      Data.Project
+      Data.Todo
       Data.TomadoTask
       Database.Schema
       Database.Util
@@ -39,6 +42,8 @@ library
       Paths_tomado
   hs-source-dirs:
       src
+  default-extensions:
+      OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.11 && <10
