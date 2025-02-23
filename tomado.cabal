@@ -50,6 +50,7 @@ library
     , beam-core
     , beam-migrate
     , beam-sqlite
+    , placeholders
     , rio >=0.1.12.0
     , sqlite-simple
   default-language: Haskell2010
@@ -69,6 +70,7 @@ executable tomado-exe
     , beam-migrate
     , beam-sqlite
     , optparse-simple
+    , placeholders
     , rio >=0.1.12.0
     , sqlite-simple
     , tomado
@@ -94,6 +96,7 @@ test-suite tomado-test
     , beam-sqlite
     , hspec
     , hspec-discover
+    , placeholders
     , rio >=0.1.12.0
     , sqlite-simple
     , tomado
