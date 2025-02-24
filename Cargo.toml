@@ -1,0 +1,12 @@
+[package]
+name = "tomado"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "*"
+clap = { version = "*", features = ["derive"] }
+chrono = { version = "*", features = ["serde"] }
+home = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
