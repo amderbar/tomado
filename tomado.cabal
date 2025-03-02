@@ -32,7 +32,13 @@ library
       Data.Tag
       Data.TodoEntity
       Data.TomadoTask
+      Database.Model.Event
+      Database.Model.Event.TodoCreated
+      Database.Model.Event.TodoDoneToggled
+      Database.Model.Event.TodoUpdated
+      Database.Model.Todo
       Database.Schema
+      Database.TaskTable
       Database.Util
       Import
       Run
