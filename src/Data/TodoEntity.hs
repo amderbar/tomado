@@ -1,11 +1,13 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Todo where
+module Data.TodoEntity where
 
 import Data.Comment (Comment)
+import Data.Context (Context)
 import Data.Int (Int32)
 import Data.Project (Project)
+import Data.Tag (Tag)
 import Import (Identity (runIdentity))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
@@ -13,45 +15,45 @@ import RIO.Time (LocalTime)
 newtype TodoId = TodoId Int32
   deriving (Eq, Show)
 
-data TodoT m = Todo
+data TodoEntityT m = TodoEntity
   { _todoId :: m TodoId,
-    todoName :: Text,
     todoDescription :: Text,
+    todoDetail :: Text,
     todoDone :: Bool,
     _todoCreatedAt :: m LocalTime,
     _todoUpdatedAt :: m LocalTime,
     todoPriority :: Int32,
     todoDueDate :: Maybe LocalTime,
-    todoContext :: Maybe Text,
+    todoContext :: Maybe Context,
     todoProject :: Maybe Project,
-    todoTags :: [Text],
+    todoTags :: [Tag],
     todoParent :: Maybe TodoId,
     todoComments :: [Comment]
   }
 
-deriving instance (Show (f TodoId), Show (f LocalTime)) => Show (TodoT f)
+deriving instance (Show (f TodoId), Show (f LocalTime)) => Show (TodoEntityT f)
 
-deriving instance (Eq (f TodoId), Eq (f LocalTime)) => Eq (TodoT f)
+deriving instance (Eq (f TodoId), Eq (f LocalTime)) => Eq (TodoEntityT f)
 
-type Todo = TodoT Identity
+type TodoEntity = TodoEntityT Identity
 
-todoId :: Todo -> TodoId
+todoId :: TodoEntity -> TodoId
 todoId = runIdentity . _todoId
 
-todoCreatedAt :: Todo -> LocalTime
+todoCreatedAt :: TodoEntity -> LocalTime
 todoCreatedAt = runIdentity . _todoCreatedAt
 
-todoUpdatedAt :: Todo -> LocalTime
+todoUpdatedAt :: TodoEntity -> LocalTime
 todoUpdatedAt = runIdentity . _todoUpdatedAt
 
-type NewTodo = TodoT Maybe
+type NewTodoEntity = TodoEntityT Maybe
 
-emptyTodo :: NewTodo
-emptyTodo =
-  Todo
+emptyTodoEntity :: NewTodoEntity
+emptyTodoEntity =
+  TodoEntity
     { _todoId = Nothing,
-      todoName = empty,
       todoDescription = empty,
+      todoDetail = empty,
       todoDone = False,
       _todoCreatedAt = Nothing,
       _todoUpdatedAt = Nothing,

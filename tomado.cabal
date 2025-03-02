@@ -27,8 +27,10 @@ library
   exposed-modules:
       Capability.TaskRepository
       Data.Comment
+      Data.Context
       Data.Project
-      Data.Todo
+      Data.Tag
+      Data.TodoEntity
       Data.TomadoTask
       Database.Schema
       Database.Util

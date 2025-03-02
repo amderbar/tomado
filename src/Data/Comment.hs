@@ -15,7 +15,7 @@ data CommentT m = Comment
   { _commentId :: m CommentId,
     commentText :: Text,
     _commentCreatedAt :: m LocalTime,
-    _commentUpdatedAt :: m LocalTime
+    commentUpdatedAt :: Maybe LocalTime
   }
 
 deriving instance (Show (f CommentId), Show (f LocalTime)) => Show (CommentT f)
@@ -30,9 +30,6 @@ commentId = runIdentity . _commentId
 commentCreatedAt :: Comment -> LocalTime
 commentCreatedAt = runIdentity . _commentCreatedAt
 
-commentUpdatedAt :: Comment -> LocalTime
-commentUpdatedAt = runIdentity . _commentUpdatedAt
-
 type NewComment = CommentT Maybe
 
 emptyComment :: NewComment
@@ -41,5 +38,5 @@ emptyComment =
     { _commentId = Nothing,
       commentText = empty,
       _commentCreatedAt = Nothing,
-      _commentUpdatedAt = Nothing
+      commentUpdatedAt = Nothing
     }

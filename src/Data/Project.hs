@@ -18,7 +18,7 @@ data ProjectT m = Project
     projectDueDate :: Maybe LocalTime,
     projectParent :: Maybe Project,
     _projectCreatedAt :: m LocalTime,
-    _projectUpdatedAt :: m LocalTime
+    projectUpdatedAt :: Maybe LocalTime
   }
 
 deriving instance (Show (f ProjectId), Show (f LocalTime)) => Show (ProjectT f)
@@ -41,9 +41,6 @@ projectId = runIdentity . _projectId
 projectCreatedAt :: Project -> LocalTime
 projectCreatedAt = runIdentity . _projectCreatedAt
 
-projectUpdatedAt :: Project -> LocalTime
-projectUpdatedAt = runIdentity . _projectUpdatedAt
-
 type NewProject = ProjectT Maybe
 
 emptyProject :: NewProject
@@ -55,5 +52,5 @@ emptyProject =
       projectDueDate = Nothing,
       projectParent = Nothing,
       _projectCreatedAt = Nothing,
-      _projectUpdatedAt = Nothing
+      projectUpdatedAt = Nothing
     }
