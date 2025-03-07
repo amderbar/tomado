@@ -32,12 +32,15 @@ library
       Data.Tag
       Data.TodoEntity
       Data.TomadoTask
+      Database.Command
       Database.Model.Event
       Database.Model.Event.TodoCreated
       Database.Model.Event.TodoDoneToggled
       Database.Model.Event.TodoUpdated
       Database.Model.Todo
+      Database.Query
       Database.Schema
+      Database.Setup
       Database.TaskTable
       Database.Util
       Import

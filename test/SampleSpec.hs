@@ -5,11 +5,11 @@ import Data.TomadoTask
 import Capability.TaskRepository
 import Test.TaskRepositoryDb
 import Test.Hspec
-import Database.Util (withTomadoDb, initDb)
-import Database.SQLite.Simple (Connection)
+import Database.Setup (initDb)
+import Database.Util (Connection, withConnection)
 
 setupDb :: (Connection -> IO ()) -> IO ()
-setupDb action = withTomadoDb ":memory:" (\conn -> initDb conn >> action conn)
+setupDb action = withConnection ":memory:" (\conn -> initDb conn >> action conn)
 
 spec :: Spec
 spec = around setupDb $ do
