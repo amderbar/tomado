@@ -4,6 +4,7 @@ module Database.Util
     allTasks,
     createTodoEntry,
     updateTodoEntry,
+    getTodoEntry,
     getAllTodoEntries,
     module Database.SQLite.Simple,
   )
@@ -17,7 +18,7 @@ import Database.Command (createEvent, createTodo, createTodoCreated, createTodoU
 import Database.Model.Event (Event, EventParentId)
 import Database.Model.Event.TodoCreated (TodoCreated)
 import Database.Model.Event.TodoUpdated (TodoUpdated)
-import Database.Query (allTodoEntries)
+import Database.Query (getAllLatestTodo, getLatestTodo)
 import Database.SQLite.Simple (Connection, withConnection)
 import Database.Schema
 
@@ -50,5 +51,8 @@ updateTodoEntry upd parentEventId conn = runBeamSqlite conn $ do
   [ev] <- runInsertReturningList (createEvent parentEventId)
   createTodoUpdated upd ev
 
+getTodoEntry :: Int -> Connection -> IO (Maybe (TodoCreated, Event, Maybe TodoUpdated, Maybe Event))
+getTodoEntry tid conn = runBeamSqlite conn $ getLatestTodo (fromIntegral tid)
+
 getAllTodoEntries :: Connection -> IO [(TodoCreated, Event, Maybe TodoUpdated, Maybe Event)]
-getAllTodoEntries conn = runBeamSqlite conn allTodoEntries
+getAllTodoEntries conn = runBeamSqlite conn getAllLatestTodo

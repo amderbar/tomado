@@ -11,11 +11,32 @@ import Database.Beam.Backend (SqlNull)
 import Database.Model.Event (Event, EventT (_eventId))
 import Database.Model.Event.TodoCreated (TodoCreated, TodoCreatedT (_todoCreatedEvent, _todoCreatedTodo))
 import Database.Model.Event.TodoUpdated (TodoUpdated, TodoUpdatedT (_todoUpdatedEvent, _todoUpdatedTodo))
+import Database.Model.Todo (PrimaryKey (TodoId))
 import Database.Schema (TomadoDb (_tomadoDbEvents, _tomadoDbTodoCreated, _tomadoDbTodoUpdated), tomadoDb)
 import Import (Text)
 import RIO.Time (LocalTime)
 
-allTodoEntries ::
+getLatestTodo ::
+  ( HasQBuilder be,
+    HasSqlEqualityCheck be Int32,
+    HasSqlEqualityCheck be LocalTime,
+    FromBackendRow be Int32,
+    FromBackendRow be Text,
+    FromBackendRow be LocalTime,
+    FromBackendRow be SqlNull,
+    FromBackendRow be Bool,
+    MonadBeam be m
+  ) =>
+  Int32 ->
+  m (Maybe (TodoCreated, Event, Maybe TodoUpdated, Maybe Event))
+getLatestTodo tid = runSelectReturningOne $ select $ do
+  ev <- all_ (_tomadoDbEvents tomadoDb)
+  crd <- oneToOne_ (_tomadoDbTodoCreated tomadoDb) _todoCreatedEvent ev
+  (upd, updEv) <- leftJoin_ getAllLatestTodoUpdate (\(u, _) -> _todoUpdatedTodo u ==. _todoCreatedTodo crd)
+  guard_ $ _todoCreatedTodo crd ==. val_ (TodoId tid)
+  pure (crd, ev, upd, updEv)
+
+getAllLatestTodo ::
   ( HasQBuilder be,
     FromBackendRow be Int32,
     FromBackendRow be Text,
@@ -27,7 +48,7 @@ allTodoEntries ::
     MonadBeam be m
   ) =>
   m [(TodoCreated, Event, Maybe TodoUpdated, Maybe Event)]
-allTodoEntries = runSelectReturningList $ select $ do
+getAllLatestTodo = runSelectReturningList $ select $ do
   ev <- all_ (_tomadoDbEvents tomadoDb)
   crd <- oneToOne_ (_tomadoDbTodoCreated tomadoDb) _todoCreatedEvent ev
   (upd, updEv) <- leftJoin_ getAllLatestTodoUpdate (\(u, _) -> _todoUpdatedTodo u ==. _todoCreatedTodo crd)
