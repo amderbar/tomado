@@ -5,14 +5,13 @@ module Data.TodoEntity where
 
 import Data.Comment (Comment)
 import Data.Context (Context)
-import Data.Int (Int32)
 import Data.Project (Project)
 import Data.Tag (Tag)
 import Import (Identity (runIdentity))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
-newtype TodoId = TodoId Int32
+newtype TodoId = TodoId Int
   deriving (Eq, Show)
 
 data TodoEntityT m = TodoEntity
@@ -21,8 +20,8 @@ data TodoEntityT m = TodoEntity
     todoDetail :: Text,
     todoDone :: Bool,
     _todoCreatedAt :: m LocalTime,
-    _todoUpdatedAt :: m LocalTime,
-    todoPriority :: Int32,
+    todoUpdatedAt :: Maybe LocalTime,
+    todoPriority :: Int,
     todoDueDate :: Maybe LocalTime,
     todoContext :: Maybe Context,
     todoProject :: Maybe Project,
@@ -43,9 +42,6 @@ todoId = runIdentity . _todoId
 todoCreatedAt :: TodoEntity -> LocalTime
 todoCreatedAt = runIdentity . _todoCreatedAt
 
-todoUpdatedAt :: TodoEntity -> LocalTime
-todoUpdatedAt = runIdentity . _todoUpdatedAt
-
 type NewTodoEntity = TodoEntityT Maybe
 
 emptyTodoEntity :: NewTodoEntity
@@ -56,7 +52,7 @@ emptyTodoEntity =
       todoDetail = empty,
       todoDone = False,
       _todoCreatedAt = Nothing,
-      _todoUpdatedAt = Nothing,
+      todoUpdatedAt = Nothing,
       todoPriority = 0,
       todoDueDate = Nothing,
       todoContext = Nothing,

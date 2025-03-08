@@ -68,15 +68,15 @@ createTodoUpdated upd ev =
               _todoUpdatedDescription = val_ $ todoDescription upd,
               _todoUpdatedDetail = val_ $ todoDetail upd,
               _todoUpdatedDone = val_ $ todoDone upd,
-              _todoUpdatedPriority = val_ $ todoPriority upd,
+              _todoUpdatedPriority = val_ $ fromIntegral (todoPriority upd),
               _todoUpdatedDueDate = val_ $ todoDueDate upd,
               _todoUpdatedParent = val_ $ transform' (todoParent upd)
             }
         ]
   where
     transform :: TE.TodoId -> TodoId
-    transform (TE.TodoId i) = TodoId i
+    transform (TE.TodoId i) = TodoId (fromIntegral i)
 
     transform' :: Maybe TE.TodoId -> TodoParentId
-    transform' (Just (TE.TodoId i)) = TodoId (Just i)
+    transform' (Just (TE.TodoId i)) = TodoId $ Just (fromIntegral i)
     transform' Nothing = nullTodoId
