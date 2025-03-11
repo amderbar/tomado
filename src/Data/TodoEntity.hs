@@ -7,7 +7,7 @@ import Data.Comment (Comment)
 import Data.Context (Context)
 import Data.Project (Project)
 import Data.Tag (Tag)
-import Import (Identity (runIdentity))
+import Import (Identity (Identity, runIdentity), fromMaybe)
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
@@ -61,3 +61,12 @@ emptyTodoEntity =
       todoParent = Nothing,
       todoComments = []
     }
+
+concreteTodoEntity :: TodoId -> LocalTime -> NewTodoEntity -> TodoEntity
+concreteTodoEntity tid createdAt todo =
+  let _tid = Identity $ fromMaybe tid (_todoId todo)
+      _createdAt = Identity $ fromMaybe createdAt (_todoCreatedAt todo)
+   in todo
+        { _todoId = _tid,
+          _todoCreatedAt = _createdAt
+        }

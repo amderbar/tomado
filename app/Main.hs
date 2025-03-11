@@ -3,12 +3,14 @@
 
 module Main (main) where
 
+import Database.Util (withConnection)
 import Development.Placeholders (notImplemented)
 import Import
 import Options.Applicative.Simple
 import qualified Paths_tomado
 import RIO.Process
 import Run
+import Tomado
 
 main :: IO ()
 main = do
@@ -28,13 +30,15 @@ main = do
   lo <- logOptionsHandle stderr (optionsVerbose options)
   pc <- mkDefaultProcessContext
   withLogFunc lo $ \lf ->
-    let app =
-          App
-            { appLogFunc = lf,
-              appProcessContext = pc,
-              appOptions = options
-            }
-     in runRIO app run
+    withConnection "tomado.db" $ \conn ->
+      let app =
+            App
+              { appLogFunc = lf,
+                appProcessContext = pc,
+                appOptions = options,
+                appDbConnection = conn
+              }
+       in runAppM app run
   where
     subcommands = do
       addCommand "init" "setup TomaDo working space" $notImplemented (pure ())

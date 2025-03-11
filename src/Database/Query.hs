@@ -16,6 +16,8 @@ import Database.Schema (TomadoDb (_tomadoDbEvents, _tomadoDbTodoCreated, _tomado
 import Import (Text)
 import RIO.Time (LocalTime)
 
+type TodoQueryReturn = (TodoCreated, Event, Maybe TodoUpdated, Maybe Event)
+
 getLatestTodo ::
   ( HasQBuilder be,
     HasSqlEqualityCheck be Int32,
@@ -28,7 +30,7 @@ getLatestTodo ::
     MonadBeam be m
   ) =>
   Int32 ->
-  m (Maybe (TodoCreated, Event, Maybe TodoUpdated, Maybe Event))
+  m (Maybe TodoQueryReturn)
 getLatestTodo tid = runSelectReturningOne $ select $ do
   ev <- all_ (_tomadoDbEvents tomadoDb)
   crd <- oneToOne_ (_tomadoDbTodoCreated tomadoDb) _todoCreatedEvent ev
@@ -47,7 +49,7 @@ getAllLatestTodo ::
     HasSqlEqualityCheck be LocalTime,
     MonadBeam be m
   ) =>
-  m [(TodoCreated, Event, Maybe TodoUpdated, Maybe Event)]
+  m [TodoQueryReturn]
 getAllLatestTodo = runSelectReturningList $ select $ do
   ev <- all_ (_tomadoDbEvents tomadoDb)
   crd <- oneToOne_ (_tomadoDbTodoCreated tomadoDb) _todoCreatedEvent ev

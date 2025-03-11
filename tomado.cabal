@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Capability.TaskRepository
+      Capability.TodoReadWritable
       Data.Comment
       Data.Context
       Data.Project
@@ -45,6 +46,7 @@ library
       Database.Util
       Import
       Run
+      Tomado
       Types
       Util
   other-modules:
@@ -93,6 +95,7 @@ test-suite tomado-test
   other-modules:
       SampleSpec
       Test.TaskRepositoryDb
+      TodoReadWriteSpec
       UtilSpec
       Paths_tomado
   autogen-modules:
