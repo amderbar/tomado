@@ -1,8 +1,5 @@
 module Database.Util
-  ( insertTask,
-    findTask,
-    allTasks,
-    HasConnection (..),
+  ( HasConnection (..),
     createTodoEntry,
     updateTodoEntry,
     getTodoEntry,
@@ -12,7 +9,6 @@ module Database.Util
 where
 
 import Data.TodoEntity (NewTodoEntity, TodoEntity, TodoEntityT (todoDescription))
-import Data.TomadoTask
 import Database.Beam
 import Database.Beam.Sqlite
 import Database.Command (createEvent, createTodo, createTodoCreated, createTodoUpdated)
@@ -22,26 +18,8 @@ import Database.Model.Event.TodoUpdated (TodoUpdated)
 import Database.Model.Todo (TodoId)
 import Database.Query (getAllLatestTodo, getLatestTodo)
 import Database.SQLite.Simple (Connection, withConnection)
-import Database.Schema
 import Import (Lens', lens)
 import RIO.Time (LocalTime)
-
-insertTask :: TomadoTask -> Connection -> IO ()
-insertTask (TomadoTask (TomadoTaskId i) n d) conn =
-  runBeamSqlite conn $
-    runInsert $
-      insert (_tomadoDbTasks tomadoDb) $
-        insertExpressions [Task default_ (val_ i) (val_ n) (val_ d) currentTimestamp_]
-
-findTask :: TomadoTaskId -> Connection -> IO (Maybe TomadoTask)
-findTask (TomadoTaskId i) conn = runBeamSqlite conn $ do
-  tasks <- runSelectReturningOne $ select $ filter_ (\t -> _taskNum t ==. val_ i) $ all_ (_tomadoDbTasks tomadoDb)
-  return $ fmap toTomadoTask tasks
-
-allTasks :: Connection -> IO [TomadoTask]
-allTasks conn = runBeamSqlite conn $ do
-  tasks <- runSelectReturningList $ select $ all_ (_tomadoDbTasks tomadoDb)
-  return $ fmap toTomadoTask tasks
 
 class HasConnection a where
   connectionL :: Lens' a Connection

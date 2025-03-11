@@ -25,7 +25,6 @@ source-repository head
 
 library
   exposed-modules:
-      Capability.TaskRepository
       Capability.TodoReadWritable
       Data.Comment
       Data.Context
@@ -42,13 +41,11 @@ library
       Database.Query
       Database.Schema
       Database.Setup
-      Database.TaskTable
       Database.Util
       Import
       Run
       Tomado
       Types
-      Util
   other-modules:
       Paths_tomado
   autogen-modules:
@@ -93,10 +90,7 @@ test-suite tomado-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      SampleSpec
-      Test.TaskRepositoryDb
       TodoReadWriteSpec
-      UtilSpec
       Paths_tomado
   autogen-modules:
       Paths_tomado
