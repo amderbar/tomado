@@ -1,12 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-module Types
-  ( App (..)
-  , Options (..)
-  ) where
 
+module Types
+  ( App (..),
+    Options (..),
+  )
+where
+
+import Database.SQLite.Simple (Connection)
 import RIO
 import RIO.Process
-import Database.SQLite.Simple (Connection)
 
 -- | Command line arguments
 data Options = Options
@@ -14,14 +16,15 @@ data Options = Options
   }
 
 data App = App
-  { appLogFunc :: !LogFunc
-  , appProcessContext :: !ProcessContext
-  , appOptions :: !Options
-  -- Add other app-specific configuration information here
-  , appDbConnection :: !Connection
+  { appLogFunc :: !LogFunc,
+    appProcessContext :: !ProcessContext,
+    appOptions :: !Options,
+    -- Add other app-specific configuration information here
+    appDbConnection :: !Connection
   }
 
 instance HasLogFunc App where
-  logFuncL = lens appLogFunc (\x y -> x { appLogFunc = y })
+  logFuncL = lens appLogFunc (\x y -> x {appLogFunc = y})
+
 instance HasProcessContext App where
-  processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
+  processContextL = lens appProcessContext (\x y -> x {appProcessContext = y})
