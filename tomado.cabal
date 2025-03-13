@@ -1,0 +1,111 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           tomado
+version:        0.1.0.0
+description:    Please see the README on Github at <https://github.com/amderbar/tomado#readme>
+homepage:       https://github.com/amderbar/tomado#readme
+bug-reports:    https://github.com/amderbar/tomado/issues
+author:         amderbar
+maintainer:     amderbar@gmail.com
+copyright:      amderbar
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/amderbar/tomado
+
+library
+  exposed-modules:
+      Capability.TodoReadWritable
+      Data.Comment
+      Data.Context
+      Data.Project
+      Data.Tag
+      Data.TodoEntity
+      Data.TomadoTask
+      Database.Command
+      Database.Model.Event
+      Database.Model.Event.TodoCreated
+      Database.Model.Event.TodoDoneToggled
+      Database.Model.Event.TodoUpdated
+      Database.Model.Todo
+      Database.Query
+      Database.Schema
+      Database.Setup
+      Database.Util
+      Import
+      Run
+      Tomado
+      Types
+  other-modules:
+      Paths_tomado
+  autogen-modules:
+      Paths_tomado
+  hs-source-dirs:
+      src
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
+    , placeholders
+    , rio >=0.1.12.0
+    , sqlite-simple
+  default-language: Haskell2010
+
+executable tomado-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_tomado
+  autogen-modules:
+      Paths_tomado
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
+    , optparse-simple
+    , placeholders
+    , rio >=0.1.12.0
+    , sqlite-simple
+    , tomado
+  default-language: Haskell2010
+
+test-suite tomado-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      TodoReadWriteSpec
+      Paths_tomado
+  autogen-modules:
+      Paths_tomado
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.11 && <10
+    , beam-core
+    , beam-migrate
+    , beam-sqlite
+    , hspec
+    , hspec-discover
+    , placeholders
+    , rio >=0.1.12.0
+    , sqlite-simple
+    , tomado
+  default-language: Haskell2010
