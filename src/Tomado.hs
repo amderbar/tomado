@@ -23,8 +23,8 @@ import RIO.Time (LocalTime)
 newtype AppM env a = AppM {unAppM :: RIO env a}
   deriving (Functor, Applicative, Monad, MonadIO, MonadReader env)
 
-runAppM :: env -> AppM env a -> IO a
-runAppM env = runRIO env . unAppM
+runAppM :: AppM env a -> env -> IO a
+runAppM appM env = runRIO env (unAppM appM)
 
 instance (HasConnection env) => TodoReadable (AppM env) where
   readTodoEntry :: TodoId -> AppM env (Maybe TodoEntity)

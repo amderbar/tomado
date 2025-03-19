@@ -22,11 +22,12 @@ description:         Please see the README on Github at <https://github.com/amde
 dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
-- placeholders
 - beam-core
 - beam-migrate
 - beam-sqlite
 - sqlite-simple
+- time
+- transformers
 
 ghc-options:
 - -Wall
@@ -45,12 +46,12 @@ library:
     - OverloadedStrings
 
 executables:
-  tomado-exe:
+  tomado:
     main:                Main.hs
     source-dirs:         app
     dependencies:
     - tomado
-    - optparse-simple
+    - optparse-applicative
 
     ghc-options:
     - -threaded

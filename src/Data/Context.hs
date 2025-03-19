@@ -4,7 +4,7 @@
 module Data.Context where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity))
+import Import (Identity (runIdentity), Display (textDisplay))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
@@ -22,6 +22,9 @@ data ContextT m = Context
 deriving instance (Show (f ContextId), Show (f LocalTime)) => Show (ContextT f)
 
 deriving instance (Eq (f ContextId), Eq (f LocalTime)) => Eq (ContextT f)
+
+instance Display (ContextT m) where
+  textDisplay = (<>) "@" . contextName
 
 type Context = ContextT Identity
 

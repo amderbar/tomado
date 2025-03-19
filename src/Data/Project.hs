@@ -4,7 +4,7 @@
 module Data.Project where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity))
+import Import (Identity (runIdentity), Display (textDisplay))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
@@ -24,6 +24,9 @@ data ProjectT m = Project
 deriving instance (Show (f ProjectId), Show (f LocalTime)) => Show (ProjectT f)
 
 deriving instance (Eq (f ProjectId), Eq (f LocalTime)) => Eq (ProjectT f)
+
+instance Display (ProjectT m) where
+  textDisplay = (<>) "+" . fullName
 
 fullName :: ProjectT f -> Text
 fullName p = parentFullName p <> "/" <> projectName p

@@ -4,7 +4,7 @@
 module Data.Tag where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity))
+import Import (Identity (runIdentity), Display (textDisplay))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
@@ -21,6 +21,9 @@ data TagT m = Tag
 deriving instance (Show (f TagId), Show (f LocalTime)) => Show (TagT f)
 
 deriving instance (Eq (f TagId), Eq (f LocalTime)) => Eq (TagT f)
+
+instance Display (TagT m) where
+  textDisplay = (<>) "#" . tagName
 
 type Tag = TagT Identity
 
