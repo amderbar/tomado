@@ -7,14 +7,16 @@ module Run (run) where
 import Capability.TodoReadWritable
 import Control.Monad.Trans.Cont
 import Data.TodoEntity
-  ( TodoEntityT (..),
+  ( TodoEntity,
+    TodoEntityT (..),
+    TodoId (TodoId),
     concreteTodoEntity,
     emptyTodoEntity,
     todoId,
   )
 import Database.Model.Event (nullEventId)
 import Database.Setup (initDb)
-import Database.Util (withConnection)
+import Database.Util (Connection, withConnection)
 import Import
 import RIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import RIO.FilePath (addExtension)
@@ -46,7 +48,7 @@ router = do
     Config _ -> logInfo "Config"
     ListTodo _ -> listTodoAction
     AddTodo opt -> addTodoAction opt
-    UpdateTodo _ -> logInfo "UpdateTodo"
+    UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
 
 initAction :: AppM App ()
 initAction = do
@@ -70,6 +72,34 @@ addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate} =
   printBuilderLn (display addedTodo)
   printBuilderLn "--"
   logInfo $ "TODO: " <> display (todoId addedTodo) <> " added"
+
+updateTodoAction :: UpdateTodoOpt -> AppM App ()
+updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoPriority, updateTodoDueDate, updateTodoDone} = do
+  ws <- asks appWorkSpace
+  ret <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
+    target <- readTodoEntry (TodoId updateTodoId)
+    forM target updateTargetTodo
+  case ret of
+    Nothing -> logError $ "No such todo: " <> display updateTodoId
+    Just updatedTodo -> do
+      printBuilderLn (display updatedTodo)
+      printBuilderLn "--"
+      logInfo $ "TODO: " <> display (todoId updatedTodo) <> " updated"
+  where
+    updateTargetTodo :: TodoEntity -> AppM Connection TodoEntity
+    updateTargetTodo target = do
+      let updatedTodo =
+            target
+              & (\t -> maybe t (\u -> t {todoDescription = u}) updateTodoDescription)
+              & (\t -> maybe t (\u -> t {todoPriority = u}) updateTodoPriority)
+              -- TODO: How to Due data unset?
+              & (\t -> maybe t (\u -> t {todoDueDate = Just u}) updateTodoDueDate)
+              & (\t -> maybe t (\u -> t {todoDone = u}) updateTodoDone)
+      if target /= updatedTodo
+        then do
+          todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nullEventId
+          pure updatedTodo {todoUpdatedAt}
+        else pure target
 
 listTodoAction :: AppM App ()
 listTodoAction = do

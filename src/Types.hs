@@ -11,6 +11,7 @@ module Types
     UpdateTodoOpt (..),
     WorkSpace (..),
     getDbPath,
+    emptyUpdateTodoOpt,
   )
 where
 
@@ -44,6 +45,16 @@ data AddTodoOpt = AddTodoOpt
   }
 
 data UpdateTodoOpt = UpdateTodoOpt
+  { updateTodoId :: !Int,
+    updateTodoDescription :: !(Maybe Text),
+    updateTodoPriority :: !(Maybe Int),
+    updateTodoDueDate :: !(Maybe LocalTime),
+    updateTodoDone :: !(Maybe Bool)
+  }
+  deriving (Show)
+
+emptyUpdateTodoOpt :: Int -> UpdateTodoOpt
+emptyUpdateTodoOpt i = UpdateTodoOpt i Nothing Nothing Nothing Nothing
 
 data WorkSpace = WorkSpace
   { wsRoot :: !FilePath,

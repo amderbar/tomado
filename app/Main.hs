@@ -25,6 +25,7 @@ options =
       infoOption
         (Ver.showVersion Paths_tomado.version)
         (long "version" <> help "Show version" <> hidden)
+
     opts :: Parser Options
     opts = do
       optionsVerbose <- switch (long "verbose" <> short 'v' <> help "Verbose output?")
@@ -36,28 +37,71 @@ options =
               command "list" $ info listTodoOpt (progDesc "display a todo list"),
               command "today" $ info todayTodoOpt (progDesc "display today's todo list"),
               command "add" $ info addTodoOpt (progDesc "make a new todo"),
-              command "done" $ info doneTodoOpt (progDesc "make a todo done")
+              command "edit" $ info editTodoOpt (progDesc "edit a todo"),
+              command "done" $ info doneTodoOpt (progDesc "make a todo done. Alias of 'edit ${ID} --done'")
             ]
       pure Options {..}
+
     initOpt = pure (Init InitOpt)
+
     configOpt = pure (Config ConfigOpt)
+
     listTodoOpt = pure (ListTodo ListTodoOpt)
+
     todayTodoOpt = pure (ListTodo ListTodoOpt)
+
     addTodoOpt = do
-      addTodoDescription <- argument str (metavar "\"{the To-Do Description}\"")
-      addTodoPriority <-
-        option auto
-          $ fold
-            [ long "priority",
-              short 'p',
-              metavar "INT",
-              value 0,
-              showDefault,
-              help "Priority of the To-Do"
-            ]
-      addTodoDueDate <- optional $ option auto (long "due" <> short 'd' <> metavar "DATE" <> help "Due date of the To-Do")
+      addTodoDescription <- argument str (metavar "\"{TO-DO DESCRIPTION}\"")
+      addTodoPriority <- optionPriority
+      addTodoDueDate <- optional optionDueDate
       pure (AddTodo AddTodoOpt {..})
-    doneTodoOpt = pure (UpdateTodo UpdateTodoOpt)
+
+    editTodoOpt = do
+      updateTodoId <- argument auto (metavar "ID")
+      updateTodoDescription <- optional optionDescription
+      updateTodoPriority <- optional optionPriority
+      updateTodoDueDate <- optional optionDueDate
+      updateTodoDone <- optional (optionDone <|> optionUnDone)
+      pure (UpdateTodo UpdateTodoOpt {..})
+
+    doneTodoOpt = do
+      opt <- emptyUpdateTodoOpt <$> argument auto (metavar "ID")
+      pure (UpdateTodo opt {updateTodoDone = Just True})
+
+    optionDescription :: Parser Text
+    optionDescription =
+      strOption
+        $ fold
+          [ long "desc",
+            metavar "DESCRIPTION",
+            help "set Description of the To-Do"
+          ]
+
+    optionPriority :: Parser Int
+    optionPriority =
+      option auto
+        $ fold
+          [ long "priority",
+            metavar "INT",
+            value 0,
+            showDefault,
+            help "set Priority of the To-Do"
+          ]
+
+    optionDueDate :: Parser LocalTime
+    optionDueDate =
+      option auto
+        $ fold
+          [ long "due",
+            metavar "DATE",
+            help "set Due date of the To-Do"
+          ]
+
+    optionDone :: Parser Bool
+    optionDone = flag' True (long "done" <> help "Mark the To-Do as done")
+
+    optionUnDone :: Parser Bool
+    optionUnDone = flag' False (long "undone" <> help "Mark the To-Do as not done")
 
 main :: IO ()
 main = run =<< execParser options
