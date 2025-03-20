@@ -64,22 +64,12 @@ addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate} =
             todoDueDate = addTodoDueDate
           }
   ws <- asks appWorkSpace
-  addedTodo <- liftIO $ withConnection (getDbPath ws) $ runAppM (addTodo newTodo)
+  addedTodo <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
+    (i, createdAt, updatedAt) <- createTodoEntry newTodo nullEventId
+    pure (concreteTodoEntity i createdAt newTodo) {todoUpdatedAt = updatedAt}
   printBuilderLn (display addedTodo)
   printBuilderLn "--"
-  printBuilderLn $ "TODO: " <> display (todoId addedTodo) <> " added"
-  where
-    addTodo newTodo = do
-      (i, createdAt) <- createTodoEntry newTodo nullEventId
-      let td = concreteTodoEntity i createdAt newTodo
-      -- TODO: ここの判定はもっと汎用的に使えるものにしたいなあ
-      if addTodoPriority /= 0 || isJust addTodoDueDate
-        then do
-          -- FIXME: ここではEventIdが取れないので正しいparentEventIdを渡せない
-          updatedAt <- updateTodoEntry td nullEventId
-          pure td {todoUpdatedAt = Just updatedAt}
-        else
-          pure td
+  logInfo $ "TODO: " <> display (todoId addedTodo) <> " added"
 
 listTodoAction :: AppM App ()
 listTodoAction = do
@@ -87,7 +77,7 @@ listTodoAction = do
   todos <- liftIO $ withConnection (getDbPath ws) $ runAppM listTodoEntries
   forM_ todos (printBuilderLn . display)
   printBuilderLn "--"
-  printBuilderLn $ "Total: " <> display (length todos) <> " todos"
+  logInfo $ "Total: " <> display (length todos) <> " todos"
 
 printBuilderLn :: (MonadIO m) => Utf8Builder -> m ()
 printBuilderLn = liftIO . hPutBuilder stdout . getUtf8Builder . (<> "\n")

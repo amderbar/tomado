@@ -16,6 +16,6 @@ class (Monad repo) => TodoReadable repo where
   listTodoEntries :: repo [TodoEntity]
 
 class (Monad repo) => TodoWritable repo where
-  createTodoEntry :: NewTodoEntity -> EventParentId -> repo (TodoId, LocalTime)
+  createTodoEntry :: NewTodoEntity -> EventParentId -> repo (TodoId, LocalTime, Maybe LocalTime)
   updateTodoEntry :: TodoEntity -> EventParentId -> repo LocalTime
   deleteTodoEntry :: TodoId -> EventParentId -> repo LocalTime

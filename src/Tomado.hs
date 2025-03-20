@@ -1,10 +1,12 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Tomado where
 
 import Capability.TodoReadWritable
-import Data.TodoEntity (NewTodoEntity, TodoEntity, TodoEntityT (..), TodoId (TodoId))
+import Data.TodoEntity (NewTodoEntity, TodoEntity, TodoEntityT (..), TodoId (TodoId), concreteTodoEntity, emptyTodoEntity)
+import Database.Beam (SqlJustable (just_), Table (primaryKey))
 import Database.Model.Event (Event, EventParentId, EventT (_eventOccurredAt))
 import Database.Model.Event.TodoCreated (TodoCreated, TodoCreatedT (_todoCreatedDescription, _todoCreatedId))
 import Database.Model.Event.TodoUpdated (TodoUpdated, TodoUpdatedT (_todoUpdatedDescription, _todoUpdatedDetail, _todoUpdatedDone, _todoUpdatedDueDate, _todoUpdatedPriority))
@@ -34,16 +36,25 @@ instance (HasConnection env) => TodoReadable (AppM env) where
   listTodoEntries = runQuery getAllTodoEntries
 
 instance (HasConnection env) => TodoWritable (AppM env) where
-  createTodoEntry :: NewTodoEntity -> EventParentId -> AppM env (TodoId, LocalTime)
-  createTodoEntry td eid = do
+  createTodoEntry :: NewTodoEntity -> EventParentId -> AppM env (TodoId, LocalTime, Maybe LocalTime)
+  createTodoEntry td@TodoEntity {todoDescription} eid = do
     conn <- asks (view connectionL)
-    (M.TodoId i, createdAt) <- liftIO $ DU.createTodoEntry td eid conn
-    pure (TodoId (fromIntegral i), createdAt)
+    (M.TodoId i, created) <- liftIO $ DU.createTodoEntry todoDescription eid conn
+    let tdId = TodoId (fromIntegral i)
+        createdAt = _eventOccurredAt created
+        ntd = concreteTodoEntity tdId createdAt td
+        etd = concreteTodoEntity tdId createdAt emptyTodoEntity {todoDescription}
+    updatedAt <-
+      if etd /= ntd
+        then Just <$> updateTodoEntry ntd (just_ $ primaryKey created)
+        else pure Nothing
+    pure (tdId, createdAt, updatedAt)
 
   updateTodoEntry :: TodoEntity -> EventParentId -> AppM env LocalTime
   updateTodoEntry td eid = do
     conn <- asks (view connectionL)
-    liftIO $ DU.updateTodoEntry td eid conn
+    e <- liftIO $ DU.updateTodoEntry td eid conn
+    pure (_eventOccurredAt e)
 
   deleteTodoEntry :: TodoId -> EventParentId -> AppM env LocalTime
   deleteTodoEntry = undefined
