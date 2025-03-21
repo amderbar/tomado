@@ -52,7 +52,7 @@ options =
 
     addTodoOpt = do
       addTodoDescription <- argument str (metavar "\"{TO-DO DESCRIPTION}\"")
-      addTodoPriority <- optionPriority
+      addTodoPriority <- optional optionPriority
       addTodoDueDate <- optional optionDueDate
       pure (AddTodo AddTodoOpt {..})
 
@@ -83,8 +83,6 @@ options =
         $ fold
           [ long "priority",
             metavar "INT",
-            value 0,
-            showDefault,
             help "set Priority of the To-Do"
           ]
 

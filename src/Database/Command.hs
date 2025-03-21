@@ -68,7 +68,7 @@ createTodoUpdated upd ev =
               _todoUpdatedDescription = val_ $ todoDescription upd,
               _todoUpdatedDetail = val_ $ todoDetail upd,
               _todoUpdatedDone = val_ $ todoDone upd,
-              _todoUpdatedPriority = val_ $ fromIntegral (todoPriority upd),
+              _todoUpdatedPriority = val_ $ fromIntegral <$> todoPriority upd,
               _todoUpdatedDueDate = val_ $ todoDueDate upd,
               _todoUpdatedParent = val_ $ transform' (todoParent upd)
             }

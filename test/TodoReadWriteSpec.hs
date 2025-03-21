@@ -20,7 +20,7 @@ spec = around setupDb $ do
     context "with an empty database" $ do
       it "has no To-Do" $ \conn -> runAppM listTodoEntries conn `shouldReturn` []
     it "can create a To-Do" $ \conn -> do
-      let todo = emptyTodoEntity {todoDescription = "Buy milk", todoPriority = 1}
+      let todo = emptyTodoEntity {todoDescription = "Buy milk", todoPriority = Just 1}
       (todoId, createdAt, updatedAt) <- runAppM (createTodoEntry todo nullEventId) conn
       let expected = concreteTodoEntity todoId createdAt todo {todoUpdatedAt = updatedAt}
       runAppM listTodoEntries conn `shouldReturn` [expected]

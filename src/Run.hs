@@ -47,7 +47,7 @@ router = do
     Init _ -> initAction
     Config _ -> logInfo "Config"
     ListTodo _ -> listTodoAction
-    AddTodo opt -> addTodoAction opt
+    AddTodo opt -> logDebug (displayShow opt) >> addTodoAction opt
     UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
 
 initAction :: AppM App ()
@@ -91,7 +91,7 @@ updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoP
       let updatedTodo =
             target
               & (\t -> maybe t (\u -> t {todoDescription = u}) updateTodoDescription)
-              & (\t -> maybe t (\u -> t {todoPriority = u}) updateTodoPriority)
+              & (\t -> maybe t (\u -> t {todoPriority = Just u}) updateTodoPriority)
               -- TODO: How to Due data unset?
               & (\t -> maybe t (\u -> t {todoDueDate = Just u}) updateTodoDueDate)
               & (\t -> maybe t (\u -> t {todoDone = u}) updateTodoDone)

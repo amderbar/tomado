@@ -21,7 +21,7 @@ data TodoUpdatedT f = TodoUpdated
     _todoUpdatedDescription :: Columnar f Text,
     _todoUpdatedDetail :: Columnar f Text,
     _todoUpdatedDone :: Columnar f Bool,
-    _todoUpdatedPriority :: Columnar f Int32,
+    _todoUpdatedPriority :: Columnar f (Maybe Int32),
     _todoUpdatedDueDate :: Columnar f (Maybe LocalTime),
     -- _todoUpdatedContext :: Maybe Context,
     -- _todoUpdatedProject :: Maybe Project,

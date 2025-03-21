@@ -27,7 +27,8 @@ import Import
     (<$>),
     (<>),
   )
-import RIO.Text (Text, empty, pack, unwords)
+import RIO.Text (Text)
+import qualified RIO.Text as T (cons, empty, pack, snoc, unwords)
 import RIO.Time (LocalTime)
 
 newtype TodoId = TodoId Int
@@ -40,7 +41,7 @@ data TodoEntityT m = TodoEntity
     todoDone :: Bool,
     _todoCreatedAt :: m LocalTime,
     todoUpdatedAt :: Maybe LocalTime,
-    todoPriority :: Int,
+    todoPriority :: Maybe Int,
     todoDueDate :: Maybe LocalTime,
     todoContext :: Maybe Context,
     todoProject :: Maybe Project,
@@ -59,16 +60,17 @@ instance Display TodoEntity where
           catMaybes
             [ Just $ if todoDone t then "[x]" else "[ ]",
               Just $ textDisplay (todoId t),
+              T.cons '(' . (`T.snoc` ')') . textDisplay <$> todoPriority t,
               Just (todoDescription t),
               (<>) "due:" . fmtDisplay <$> todoDueDate t,
               textDisplay <$> todoProject t,
               textDisplay <$> todoContext t
             ]
         tags = textDisplay <$> todoTags t
-     in unwords (todoProps <> tags)
+     in T.unwords (todoProps <> tags)
     where
       fmtDisplay :: LocalTime -> Text
-      fmtDisplay = pack . formatShow iso8601Format
+      fmtDisplay = T.pack . formatShow iso8601Format
 
 type TodoEntity = TodoEntityT Identity
 
@@ -84,12 +86,12 @@ emptyTodoEntity :: NewTodoEntity
 emptyTodoEntity =
   TodoEntity
     { _todoId = Nothing,
-      todoDescription = empty,
-      todoDetail = empty,
+      todoDescription = T.empty,
+      todoDetail = T.empty,
       todoDone = False,
       _todoCreatedAt = Nothing,
       todoUpdatedAt = Nothing,
-      todoPriority = 0,
+      todoPriority = Nothing,
       todoDueDate = Nothing,
       todoContext = Nothing,
       todoProject = Nothing,

@@ -20,7 +20,6 @@ import Database.Util
   )
 import qualified Database.Util as DU (createTodoEntry, updateTodoEntry)
 import Import
-import RIO.Time (LocalTime)
 
 newtype AppM env a = AppM {unAppM :: RIO env a}
   deriving (Functor, Applicative, Monad, MonadIO, MonadReader env)
@@ -74,7 +73,7 @@ replayTodoEvents (c, ce, mu, mue) =
       todoDone = maybe False _todoUpdatedDone mu,
       _todoCreatedAt = Identity $ _eventOccurredAt ce,
       todoUpdatedAt = _eventOccurredAt <$> mue,
-      todoPriority = maybe 0 (fromIntegral . _todoUpdatedPriority) mu,
+      todoPriority = (fmap fromIntegral . _todoUpdatedPriority) =<< mu,
       todoDueDate = _todoUpdatedDueDate =<< mu,
       todoContext = Nothing, -- TODO: _todoUpdatedContext =<< mu,
       todoProject = Nothing, -- TODO: _todoUpdatedProject =<< mu,

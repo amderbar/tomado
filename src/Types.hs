@@ -40,9 +40,10 @@ data ListTodoOpt = ListTodoOpt
 
 data AddTodoOpt = AddTodoOpt
   { addTodoDescription :: !Text,
-    addTodoPriority :: !Int,
+    addTodoPriority :: !(Maybe Int),
     addTodoDueDate :: !(Maybe LocalTime)
   }
+  deriving (Show)
 
 data UpdateTodoOpt = UpdateTodoOpt
   { updateTodoId :: !Int,
