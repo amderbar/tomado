@@ -30,6 +30,3 @@ type TodoParentId = PrimaryKey TodoT (Nullable Identity)
 
 deriving instance Show TodoParentId
 deriving instance Eq TodoParentId
-
-nullTodoId :: TodoParentId
-nullTodoId = TodoId Nothing

@@ -38,6 +38,3 @@ type EventParentId = PrimaryKey EventT (Nullable Identity)
 
 deriving instance Show EventParentId
 deriving instance Eq EventParentId
-
-nullEventId :: EventParentId
-nullEventId = EventId Nothing

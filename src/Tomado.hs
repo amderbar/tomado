@@ -18,7 +18,7 @@ import Database.Util
     getAllTodoEntries,
     getTodoEntry,
   )
-import qualified Database.Util as DU (createTodoEntry, updateTodoEntry, throwAwayTodoEntry)
+import qualified Database.Util as DU (createTodoEntry, throwAwayTodoEntry, updateTodoEntry)
 import Import
 
 newtype AppM env a = AppM {unAppM :: RIO env a}

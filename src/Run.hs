@@ -14,9 +14,8 @@ import Data.TodoEntity
     emptyTodoEntity,
     todoId,
   )
-import Database.Model.Event (nullEventId)
 import Database.Setup (initDb)
-import Database.Util (Connection, withConnection)
+import Database.Util (Connection, SqlJustable (nothing_), withConnection)
 import Import
 import RIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import RIO.FilePath (addExtension)
@@ -67,7 +66,7 @@ addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate} =
           }
   ws <- asks appWorkSpace
   addedTodo <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
-    (i, createdAt, updatedAt) <- createTodoEntry newTodo nullEventId
+    (i, createdAt, updatedAt) <- createTodoEntry newTodo nothing_
     pure (concreteTodoEntity i createdAt newTodo) {todoUpdatedAt = updatedAt}
   printBuilderLn (display addedTodo)
   printBuilderLn "--"
@@ -97,7 +96,7 @@ updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoP
               & (\t -> maybe t (\u -> t {todoDone = u}) updateTodoDone)
       if target /= updatedTodo
         then do
-          todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nullEventId
+          todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nothing_
           pure updatedTodo {todoUpdatedAt}
         else pure target
 

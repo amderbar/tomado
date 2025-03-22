@@ -5,15 +5,16 @@ module Database.Util
     getTodoEntry,
     getAllTodoEntries,
     throwAwayTodoEntry,
+    module Database.Beam,
     module Database.SQLite.Simple,
   )
 where
 
 import Data.TodoEntity (TodoEntity)
 import qualified Data.TodoEntity as TE (TodoId)
-import Database.Beam
-import Database.Beam.Sqlite
-import Database.Command (createEvent, createTodo, createTodoCreated, createTodoUpdated, createTodoTrashed)
+import Database.Beam (SqlJustable (nothing_), Table (primaryKey))
+import Database.Beam.Sqlite (runBeamSqlite, runInsertReturningList)
+import Database.Command (createEvent, createTodo, createTodoCreated, createTodoTrashed, createTodoUpdated)
 import Database.Model.Event (Event, EventParentId)
 import Database.Model.Event.TodoCreated (TodoCreated)
 import Database.Model.Event.TodoUpdated (TodoUpdated)

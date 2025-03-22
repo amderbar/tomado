@@ -13,7 +13,7 @@ import Database.Beam.Backend
 import Database.Model.Event (Event, EventParentId, EventT (Event))
 import Database.Model.Event.TodoCreated (TodoCreatedT (TodoCreated))
 import Database.Model.Event.TodoUpdated (TodoUpdatedT (..))
-import Database.Model.Todo (PrimaryKey (TodoId), Todo, TodoId, TodoParentId, TodoT (Todo), nullTodoId)
+import Database.Model.Todo (PrimaryKey (TodoId), Todo, TodoId, TodoT (Todo))
 import Database.Schema (TomadoDb (..), tomadoDb)
 import Import (Int32, Text)
 import RIO.Time (LocalTime)
@@ -71,7 +71,7 @@ createTodoUpdated upd ev =
               _todoUpdatedDone = val_ $ todoDone upd,
               _todoUpdatedPriority = val_ $ fromIntegral <$> todoPriority upd,
               _todoUpdatedDueDate = val_ $ todoDueDate upd,
-              _todoUpdatedParent = val_ $ transform' (todoParent upd)
+              _todoUpdatedParent = val_ $ maybe nothing_ (just_ . transform) (todoParent upd)
             }
         ]
 
@@ -88,9 +88,5 @@ createTodoTrashed tid isTrashed ev =
     insert (_tomadoDbTodoTrashed tomadoDb) $
       insertExpressions [TodoTrashed default_ (val_ $ primaryKey ev) (val_ $ transform tid) (val_ isTrashed)]
 
-    transform :: TE.TodoId -> TodoId
-    transform (TE.TodoId i) = TodoId (fromIntegral i)
-
-    transform' :: Maybe TE.TodoId -> TodoParentId
-    transform' (Just (TE.TodoId i)) = TodoId $ Just (fromIntegral i)
-    transform' Nothing = nullTodoId
+transform :: TE.TodoId -> TodoId
+transform (TE.TodoId i) = TodoId (fromIntegral i)
