@@ -4,7 +4,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Database.Command where
+module Database.Command
+  ( createEvent,
+    createTodo,
+    createTodoCreated,
+    createTodoUpdated,
+    createTodoTrashed,
+  )
+where
 
 import Data.TodoEntity (TodoEntity, TodoEntityT (..), todoId)
 import qualified Data.TodoEntity as TE (TodoId (TodoId))
@@ -12,12 +19,12 @@ import Database.Beam
 import Database.Beam.Backend
 import Database.Model.Event (Event, EventParentId, EventT (Event))
 import Database.Model.Event.TodoCreated (TodoCreatedT (TodoCreated))
+import Database.Model.Event.TodoTrashed (TodoTrashedT (TodoTrashed))
 import Database.Model.Event.TodoUpdated (TodoUpdatedT (..))
 import Database.Model.Todo (PrimaryKey (TodoId), Todo, TodoId, TodoT (Todo))
 import Database.Schema (TomadoDb (..), tomadoDb)
 import Import (Int32, Text)
 import RIO.Time (LocalTime)
-import Database.Model.Event.TodoTrashed (TodoTrashedT(TodoTrashed))
 
 type HasSqlValueSyntax' be a = HasSqlValueSyntax (Sql92ExpressionValueSyntax (Sql92UpdateExpressionSyntax (Sql92UpdateSyntax (BeamSqlBackendSyntax be)))) a
 

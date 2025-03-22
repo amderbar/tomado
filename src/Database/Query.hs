@@ -4,7 +4,12 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Database.Query where
+module Database.Query
+  ( TodoQueryReturn,
+    getLatestTodo,
+    getAllLatestTodo,
+  )
+where
 
 import Data.Int (Int32)
 import Data.Kind (Type)
@@ -62,24 +67,21 @@ getAllLatestTodo = runSelectReturningList $ select $ do
   pure (crd, ev, upd, updEv)
 
 getAllLatestTodoUpdate ::
-  ( Database be TomadoDb,
-    HasTableEquality be EventT,
+  ( HasTableEquality be EventT,
     HasSqlEqualityCheck be Int32
   ) =>
   Q be TomadoDb s (TodoUpdatedT (QExpr be s), EventT (QExpr be s))
 getAllLatestTodoUpdate = getAllLatestTodoEvents _tomadoDbTodoUpdated _todoUpdatedTodo _todoUpdatedEvent
 
 getAllLatestTodoTrashed ::
-  ( Database be TomadoDb,
-    HasTableEquality be EventT,
+  ( HasTableEquality be EventT,
     HasSqlEqualityCheck be Int32
   ) =>
   Q be TomadoDb s (TodoTrashedT (QExpr be s), EventT (QExpr be s))
 getAllLatestTodoTrashed = getAllLatestTodoEvents _tomadoDbTodoTrashed _todoTrashedTodo _todoTrashedEvent
 
 getAllLatestTodoEvents ::
-  ( Database be TomadoDb,
-    Table t,
+  ( Table t,
     HasTableEquality be EventT,
     HasSqlEqualityCheck be Int32
   ) =>

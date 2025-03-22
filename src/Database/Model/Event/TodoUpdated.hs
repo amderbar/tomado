@@ -1,18 +1,24 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances #-}
 
-module Database.Model.Event.TodoUpdated where
+module Database.Model.Event.TodoUpdated
+  ( TodoUpdatedT (..),
+    TodoUpdated,
+    TodoUpdatedId,
+    PrimaryKey (..),
+  )
+where
 
-import RIO.Text (Text)
-import RIO.Time (LocalTime)
 import Data.Int (Int32)
 import Database.Beam
 import Database.Model.Event
 import Database.Model.Todo
+import RIO.Text (Text)
+import RIO.Time (LocalTime)
 
 data TodoUpdatedT f = TodoUpdated
   { _todoUpdatedId :: Columnar f Int32,
@@ -30,15 +36,17 @@ data TodoUpdatedT f = TodoUpdated
   deriving (Generic, Beamable)
 
 instance Table TodoUpdatedT where
-    data PrimaryKey TodoUpdatedT f = TodoUpdatedId (Columnar f Int32) deriving (Generic, Beamable)
-    primaryKey = TodoUpdatedId . _todoUpdatedId
+  data PrimaryKey TodoUpdatedT f = TodoUpdatedId (Columnar f Int32) deriving (Generic, Beamable)
+  primaryKey = TodoUpdatedId . _todoUpdatedId
 
 type TodoUpdated = TodoUpdatedT Identity
 
 deriving instance Show TodoUpdated
+
 deriving instance Eq TodoUpdated
 
 type TodoUpdatedId = PrimaryKey TodoUpdatedT Identity
 
 deriving instance Show TodoUpdatedId
+
 deriving instance Eq TodoUpdatedId

@@ -4,7 +4,13 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Database.Model.Event.TodoTrashed where
+module Database.Model.Event.TodoTrashed
+  ( TodoTrashedT (..),
+    TodoTrashed,
+    TodoTrashedId,
+    PrimaryKey (..),
+  )
+where
 
 import Data.Int (Int32)
 import Database.Beam

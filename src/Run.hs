@@ -21,7 +21,7 @@ import RIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDi
 import RIO.FilePath (addExtension)
 import RIO.Process (mkDefaultProcessContext)
 import System.Environment (getProgName)
-import Tomado
+import Tomado (AppM, runAppM)
 
 run :: Options -> IO ()
 run args = evalContT $ do

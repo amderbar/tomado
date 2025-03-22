@@ -2,7 +2,11 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Tomado where
+module Tomado
+  ( AppM (..),
+    runAppM,
+  )
+where
 
 import Capability.TodoReadWritable
 import Data.TodoEntity (NewTodoEntity, TodoEntity, TodoEntityT (..), TodoId (TodoId), concreteTodoEntity, emptyTodoEntity)

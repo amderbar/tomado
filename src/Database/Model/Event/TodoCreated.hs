@@ -1,17 +1,23 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances #-}
 
-module Database.Model.Event.TodoCreated where
+module Database.Model.Event.TodoCreated
+  ( TodoCreatedT (..),
+    TodoCreated,
+    TodoCreatedId,
+    PrimaryKey (..),
+  )
+where
 
-import RIO.Text (Text)
 import Data.Int (Int32)
 import Database.Beam
 import Database.Model.Event
 import Database.Model.Todo
+import RIO.Text (Text)
 
 data TodoCreatedT f = TodoCreated
   { _todoCreatedId :: Columnar f Int32,
@@ -28,9 +34,11 @@ instance Table TodoCreatedT where
 type TodoCreated = TodoCreatedT Identity
 
 deriving instance Show TodoCreated
+
 deriving instance Eq TodoCreated
 
 type TodoCreatedId = PrimaryKey TodoCreatedT Identity
 
 deriving instance Show TodoCreatedId
+
 deriving instance Eq TodoCreatedId

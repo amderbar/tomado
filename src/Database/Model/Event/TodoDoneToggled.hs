@@ -1,11 +1,17 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances #-}
 
-module Database.Model.Event.TodoDoneToggled where
+module Database.Model.Event.TodoDoneToggled
+  ( TodoDoneToggledT (..),
+    TodoDoneToggled,
+    TodoDoneToggledId,
+    PrimaryKey (..),
+  )
+where
 
 import Data.Int (Int32)
 import Database.Beam
@@ -21,15 +27,17 @@ data TodoDoneToggledT f = TodoDoneToggled
   deriving (Generic, Beamable)
 
 instance Table TodoDoneToggledT where
-    data PrimaryKey TodoDoneToggledT f = TodoDoneToggledId (Columnar f Int32) deriving (Generic, Beamable)
-    primaryKey = TodoDoneToggledId . _todoDoneToggledId
+  data PrimaryKey TodoDoneToggledT f = TodoDoneToggledId (Columnar f Int32) deriving (Generic, Beamable)
+  primaryKey = TodoDoneToggledId . _todoDoneToggledId
 
 type TodoDoneToggled = TodoDoneToggledT Identity
 
 deriving instance Show TodoDoneToggled
+
 deriving instance Eq TodoDoneToggled
 
 type TodoDoneToggledId = PrimaryKey TodoDoneToggledT Identity
 
 deriving instance Show TodoDoneToggledId
+
 deriving instance Eq TodoDoneToggledId
