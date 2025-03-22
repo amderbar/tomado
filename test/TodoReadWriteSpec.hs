@@ -36,7 +36,6 @@ spec = around setupDb $ do
       updatedAt <- runAppM (updateTodoEntry updated nothing_) conn
       runAppM (readTodoEntry todoId) conn `shouldReturn` Just updated {todoUpdatedAt = Just updatedAt}
     it "can delete a To-Do" $ \conn -> do
-      pendingWith "deleteTodoEntry function is not Implemented yet"
       let todo = emptyTodoEntity {todoDescription = "Buy milk"}
       (todoId, _, _) <- runAppM (createTodoEntry todo nothing_) conn
       void $ runAppM (deleteTodoEntry todoId nothing_) conn
