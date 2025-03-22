@@ -38,7 +38,8 @@ options =
               command "today" $ info todayTodoOpt (progDesc "display today's todo list"),
               command "add" $ info addTodoOpt (progDesc "make a new todo"),
               command "edit" $ info editTodoOpt (progDesc "edit a todo"),
-              command "done" $ info doneTodoOpt (progDesc "make a todo done. Alias of 'edit ${ID} --done'")
+              command "done" $ info doneTodoOpt (progDesc "make a todo done. Alias of 'edit ${ID} --done'"),
+              command "trash" $ info trashTodoOpt (progDesc "throw a todo to trash")
             ]
       pure Options {..}
 
@@ -67,6 +68,10 @@ options =
     doneTodoOpt = do
       opt <- emptyUpdateTodoOpt <$> argument auto (metavar "ID")
       pure (UpdateTodo opt {updateTodoDone = Just True})
+
+    trashTodoOpt = do
+      trashTodoId <- argument auto (metavar "ID")
+      pure (TrashTodo TrashTodoOpt {..})
 
     optionDescription :: Parser Text
     optionDescription =

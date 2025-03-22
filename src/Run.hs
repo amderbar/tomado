@@ -48,6 +48,7 @@ router = do
     ListTodo _ -> listTodoAction
     AddTodo opt -> logDebug (displayShow opt) >> addTodoAction opt
     UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
+    TrashTodo opt -> logDebug (displayShow opt) >> trashTodoAction opt
 
 initAction :: AppM App ()
 initAction = do
@@ -99,6 +100,19 @@ updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoP
           todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nothing_
           pure updatedTodo {todoUpdatedAt}
         else pure target
+
+trashTodoAction :: TrashTodoOpt -> AppM App ()
+trashTodoAction TrashTodoOpt {trashTodoId} = do
+  ws <- asks appWorkSpace
+  ret <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
+    target <- readTodoEntry (TodoId trashTodoId)
+    forM target trashTargetTodo
+  case ret of
+    Nothing -> logError $ "No such todo: " <> display trashTodoId
+    Just _ -> logInfo $ "TODO: " <> display trashTodoId <> " trashed"
+  where
+    trashTargetTodo :: TodoEntity -> AppM Connection ()
+    trashTargetTodo target = void $ deleteTodoEntry (todoId target) nothing_
 
 listTodoAction :: AppM App ()
 listTodoAction = do

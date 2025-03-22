@@ -9,6 +9,7 @@ module Types
     ListTodoOpt (..),
     AddTodoOpt (..),
     UpdateTodoOpt (..),
+    TrashTodoOpt (..),
     WorkSpace (..),
     getDbPath,
     emptyUpdateTodoOpt,
@@ -31,6 +32,7 @@ data Action
   | ListTodo ListTodoOpt
   | AddTodo AddTodoOpt
   | UpdateTodo UpdateTodoOpt
+  | TrashTodo TrashTodoOpt
 
 data InitOpt = InitOpt
 
@@ -56,6 +58,11 @@ data UpdateTodoOpt = UpdateTodoOpt
 
 emptyUpdateTodoOpt :: Int -> UpdateTodoOpt
 emptyUpdateTodoOpt i = UpdateTodoOpt i Nothing Nothing Nothing Nothing
+
+newtype TrashTodoOpt = TrashTodoOpt
+  { trashTodoId :: Int
+  }
+  deriving (Show)
 
 data WorkSpace = WorkSpace
   { wsRoot :: !FilePath,
