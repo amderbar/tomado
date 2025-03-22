@@ -18,7 +18,7 @@ import Database.Util
     getAllTodoEntries,
     getTodoEntry,
   )
-import qualified Database.Util as DU (createTodoEntry, updateTodoEntry)
+import qualified Database.Util as DU (createTodoEntry, updateTodoEntry, throwAwayTodoEntry)
 import Import
 
 newtype AppM env a = AppM {unAppM :: RIO env a}
@@ -56,7 +56,10 @@ instance (HasConnection env) => TodoWritable (AppM env) where
     pure (_eventOccurredAt e)
 
   deleteTodoEntry :: TodoId -> EventParentId -> AppM env LocalTime
-  deleteTodoEntry = undefined
+  deleteTodoEntry tid eid = do
+    conn <- asks (view connectionL)
+    e <- liftIO $ DU.throwAwayTodoEntry tid True eid conn
+    pure (_eventOccurredAt e)
 
 runQuery :: (HasConnection env, Functor m) => (Connection -> IO (m TodoQueryReturn)) -> AppM env (m TodoEntity)
 runQuery query = do
@@ -71,6 +74,7 @@ replayTodoEvents (c, ce, mu, mue) =
       todoDescription = maybe (_todoCreatedDescription c) _todoUpdatedDescription mu,
       todoDetail = maybe "" _todoUpdatedDetail mu,
       todoDone = maybe False _todoUpdatedDone mu,
+      todoTrashed = False, -- TODO: _todoTrashedTrashed =<< mt,
       _todoCreatedAt = Identity $ _eventOccurredAt ce,
       todoUpdatedAt = _eventOccurredAt <$> mue,
       todoPriority = (fmap fromIntegral . _todoUpdatedPriority) =<< mu,

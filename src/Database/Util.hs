@@ -4,14 +4,16 @@ module Database.Util
     updateTodoEntry,
     getTodoEntry,
     getAllTodoEntries,
+    throwAwayTodoEntry,
     module Database.SQLite.Simple,
   )
 where
 
 import Data.TodoEntity (TodoEntity)
+import qualified Data.TodoEntity as TE (TodoId)
 import Database.Beam
 import Database.Beam.Sqlite
-import Database.Command (createEvent, createTodo, createTodoCreated, createTodoUpdated)
+import Database.Command (createEvent, createTodo, createTodoCreated, createTodoUpdated, createTodoTrashed)
 import Database.Model.Event (Event, EventParentId)
 import Database.Model.Event.TodoCreated (TodoCreated)
 import Database.Model.Event.TodoUpdated (TodoUpdated)
@@ -37,6 +39,12 @@ updateTodoEntry :: TodoEntity -> EventParentId -> Connection -> IO Event
 updateTodoEntry upd parentEventId conn = runBeamSqlite conn $ do
   [ev] <- runInsertReturningList (createEvent parentEventId)
   createTodoUpdated upd ev
+  pure ev
+
+throwAwayTodoEntry :: TE.TodoId -> Bool -> EventParentId -> Connection -> IO Event
+throwAwayTodoEntry tid isTrashed parentEventId conn = runBeamSqlite conn $ do
+  [ev] <- runInsertReturningList (createEvent parentEventId)
+  createTodoTrashed tid isTrashed ev
   pure ev
 
 getTodoEntry :: Int -> Connection -> IO (Maybe (TodoCreated, Event, Maybe TodoUpdated, Maybe Event))

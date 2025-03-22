@@ -17,6 +17,7 @@ import Database.Model.Todo (PrimaryKey (TodoId), Todo, TodoId, TodoParentId, Tod
 import Database.Schema (TomadoDb (..), tomadoDb)
 import Import (Int32, Text)
 import RIO.Time (LocalTime)
+import Database.Model.Event.TodoTrashed (TodoTrashedT(TodoTrashed))
 
 type HasSqlValueSyntax' be a = HasSqlValueSyntax (Sql92ExpressionValueSyntax (Sql92UpdateExpressionSyntax (Sql92UpdateSyntax (BeamSqlBackendSyntax be)))) a
 
@@ -73,7 +74,20 @@ createTodoUpdated upd ev =
               _todoUpdatedParent = val_ $ transform' (todoParent upd)
             }
         ]
-  where
+
+createTodoTrashed ::
+  ( HasQBuilder be,
+    MonadBeam be m
+  ) =>
+  TE.TodoId ->
+  Bool ->
+  Event ->
+  m ()
+createTodoTrashed tid isTrashed ev =
+  runInsert $
+    insert (_tomadoDbTodoTrashed tomadoDb) $
+      insertExpressions [TodoTrashed default_ (val_ $ primaryKey ev) (val_ $ transform tid) (val_ isTrashed)]
+
     transform :: TE.TodoId -> TodoId
     transform (TE.TodoId i) = TodoId (fromIntegral i)
 

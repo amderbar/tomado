@@ -4,7 +4,17 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Data.TodoEntity where
+module Data.TodoEntity
+  ( TodoEntityT (..),
+    TodoEntity,
+    TodoId (TodoId),
+    todoId,
+    todoCreatedAt,
+    NewTodoEntity,
+    emptyTodoEntity,
+    concreteTodoEntity,
+  )
+where
 
 import Data.Comment (Comment)
 import Data.Context (Context)
@@ -39,6 +49,7 @@ data TodoEntityT m = TodoEntity
     todoDescription :: Text,
     todoDetail :: Text,
     todoDone :: Bool,
+    todoTrashed :: Bool,
     _todoCreatedAt :: m LocalTime,
     todoUpdatedAt :: Maybe LocalTime,
     todoPriority :: Maybe Int,
@@ -89,6 +100,7 @@ emptyTodoEntity =
       todoDescription = T.empty,
       todoDetail = T.empty,
       todoDone = False,
+      todoTrashed = False,
       _todoCreatedAt = Nothing,
       todoUpdatedAt = Nothing,
       todoPriority = Nothing,
