@@ -1,10 +1,20 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Project where
+module Data.Project
+  ( ProjectId (..),
+    ProjectT (..),
+    Project,
+    NewProject,
+    emptyProject,
+    projectId,
+    projectCreatedAt,
+    fullName,
+  )
+where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity), Display (textDisplay))
+import Import (Display (textDisplay), Identity (runIdentity))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 

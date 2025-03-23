@@ -1,10 +1,19 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Context where
+module Data.Context
+  ( ContextId (..),
+    ContextT (..),
+    Context,
+    NewContext,
+    emptyContext,
+    contextId,
+    contextCreatedAt,
+  )
+where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity), Display (textDisplay))
+import Import (Display (textDisplay), Identity (runIdentity))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 

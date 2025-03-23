@@ -1,7 +1,16 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Comment where
+module Data.Comment
+  ( CommentId (..),
+    CommentT (..),
+    Comment,
+    NewComment,
+    commentId,
+    commentCreatedAt,
+    emptyComment,
+  )
+where
 
 import Data.Int (Int32)
 import Import (Identity (runIdentity))

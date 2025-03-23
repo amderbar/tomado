@@ -1,10 +1,19 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Tag where
+module Data.Tag
+  ( TagId (..),
+    TagT (..),
+    Tag,
+    NewTag,
+    tagId,
+    tagCreatedAt,
+    emptyTag,
+  )
+where
 
 import Data.Int (Int32)
-import Import (Identity (runIdentity), Display (textDisplay))
+import Import (Display (textDisplay), Identity (runIdentity))
 import RIO.Text (Text, empty)
 import RIO.Time (LocalTime)
 
