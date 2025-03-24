@@ -42,6 +42,7 @@ data ListTodoOpt = ListTodoOpt
 
 data AddTodoOpt = AddTodoOpt
   { addTodoDescription :: !Text,
+    addTodoDetail :: !Bool,
     addTodoPriority :: !(Maybe Int),
     addTodoDueDate :: !(Maybe LocalTime)
   }

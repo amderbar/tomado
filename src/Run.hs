@@ -20,7 +20,9 @@ import Import
 import RIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
 import RIO.FilePath (addExtension)
 import RIO.Process (mkDefaultProcessContext)
+import qualified RIO.Text as T
 import System.Environment (getProgName)
+import System.IO (getContents)
 import Tomado (AppM, runAppM)
 
 run :: Options -> IO ()
@@ -58,13 +60,21 @@ initAction = do
   logInfo "Initialized database"
 
 addTodoAction :: AddTodoOpt -> AppM App ()
-addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate} = do
+addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate, addTodoDetail} = do
+  addTodoDetailContents <-
+    if addTodoDetail
+      then do
+        printBuilderLn "Enter the detail and press Ctrl-D when finished."
+        printBuilderLn "--"
+        Just . T.pack <$> liftIO getContents
+      else pure Nothing
   let newTodo =
         emptyTodoEntity
           { todoDescription = addTodoDescription,
             todoPriority = addTodoPriority,
             todoDueDate = addTodoDueDate
           }
+          & (\t -> maybe t (\u -> t {todoDetail = u}) addTodoDetailContents)
   ws <- asks appWorkSpace
   addedTodo <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
     (i, createdAt, updatedAt) <- createTodoEntry newTodo nothing_

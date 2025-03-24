@@ -55,6 +55,7 @@ options =
       addTodoDescription <- argument str (metavar "\"{TO-DO DESCRIPTION}\"")
       addTodoPriority <- optional optionPriority
       addTodoDueDate <- optional optionDueDate
+      addTodoDetail <- switch (long "detail" <> help "Set detail of the To-Do form stdin")
       pure (AddTodo AddTodoOpt {..})
 
     editTodoOpt = do
