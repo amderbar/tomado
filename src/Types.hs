@@ -4,7 +4,6 @@ module Types
   ( App (..),
     Options (..),
     Action (..),
-    InitOpt (..),
     ConfigOpt (..),
     ListTodoOpt (..),
     AddTodoOpt (..),
@@ -13,10 +12,13 @@ module Types
     WorkSpace (..),
     getDbPath,
     emptyUpdateTodoOpt,
+    HasConnection (..),
   )
 where
 
+import Database.SQLite.Simple (Connection)
 import RIO
+import RIO.FilePath ((</>))
 import RIO.Process
 import RIO.Time (LocalTime)
 
@@ -27,14 +29,11 @@ data Options = Options
   }
 
 data Action
-  = Init InitOpt
-  | Config ConfigOpt
+  = Config ConfigOpt
   | ListTodo ListTodoOpt
   | AddTodo AddTodoOpt
   | UpdateTodo UpdateTodoOpt
   | TrashTodo TrashTodoOpt
-
-data InitOpt = InitOpt
 
 data ConfigOpt = ConfigOpt
 
@@ -71,13 +70,14 @@ data WorkSpace = WorkSpace
   }
 
 getDbPath :: WorkSpace -> FilePath
-getDbPath ws = wsRoot ws <> "/" <> wsDbName ws
+getDbPath ws = wsRoot ws </> wsDbName ws
 
 data App = App
   { appLogFunc :: !LogFunc,
     appProcessContext :: !ProcessContext,
     appOptions :: !Options,
     -- Add other app-specific configuration information here
+    appConnection :: !Connection,
     appWorkSpace :: !WorkSpace
   }
 
@@ -86,3 +86,12 @@ instance HasLogFunc App where
 
 instance HasProcessContext App where
   processContextL = lens appProcessContext (\x y -> x {appProcessContext = y})
+
+class HasConnection a where
+  connectionL :: Lens' a Connection
+
+instance HasConnection Connection where
+  connectionL = lens id (\_ y -> y)
+
+instance HasConnection App where
+  connectionL = lens appConnection (\x y -> x {appConnection = y})

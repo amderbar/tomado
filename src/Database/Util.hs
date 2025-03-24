@@ -1,6 +1,5 @@
 module Database.Util
-  ( HasConnection (..),
-    createTodoEntry,
+  ( createTodoEntry,
     updateTodoEntry,
     getTodoEntry,
     getAllTodoEntries,
@@ -21,13 +20,7 @@ import Database.Model.Event.TodoUpdated (TodoUpdated)
 import Database.Model.Todo (TodoId)
 import Database.Query (getAllLatestTodo, getLatestTodo)
 import Database.SQLite.Simple (Connection, withConnection)
-import Import (Lens', Text, lens)
-
-class HasConnection a where
-  connectionL :: Lens' a Connection
-
-instance HasConnection Connection where
-  connectionL = lens id (\_ y -> y)
+import Import (Text)
 
 createTodoEntry :: Text -> EventParentId -> Connection -> IO (TodoId, Event)
 createTodoEntry todoDesc parentEventId conn = runBeamSqlite conn $ do

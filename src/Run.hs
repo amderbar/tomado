@@ -17,47 +17,57 @@ import Data.TodoEntity
 import Database.Setup (initDb)
 import Database.Util (Connection, SqlJustable (nothing_), withConnection)
 import Import
-import RIO.Directory (XdgDirectory (XdgData), createDirectoryIfMissing, getXdgDirectory)
-import RIO.FilePath (addExtension)
+import RIO.Directory (XdgDirectory (XdgData), createDirectory, getXdgDirectory)
+import RIO.FilePath (takeBaseName, (<.>))
 import RIO.Process (mkDefaultProcessContext)
 import qualified RIO.Text as T
 import System.Environment (getProgName)
 import System.IO (getContents)
+import System.IO.Error (catchIOError, ioError, isAlreadyExistsError)
 import Tomado (AppM, runAppM)
 
 run :: Options -> IO ()
 run args = evalContT $ do
-  progName <- liftIO getProgName
-  wd <- liftIO $ getXdgDirectory XdgData progName
   lo <- liftIO $ logOptionsHandle stderr (optionsVerbose args)
   pc <- liftIO mkDefaultProcessContext
+  wd <- liftIO $ getXdgDirectory XdgData =<< getProgName
+  ws <- liftIO (prepareWorkspace wd)
+  cn <- ContT $ withConnection (getDbPath ws)
   lf <- ContT (withLogFunc lo)
   let app =
         App
           { appLogFunc = lf,
             appProcessContext = pc,
             appOptions = args,
-            appWorkSpace = WorkSpace wd (addExtension progName "db")
+            appConnection = cn,
+            appWorkSpace = ws
           }
   liftIO $ runAppM router app
+  where
+    prepareWorkspace :: FilePath -> IO WorkSpace
+    prepareWorkspace rootPath = do
+      let db = takeBaseName rootPath <.> "db"
+        ws = WorkSpace rootPath db
+      catchIOError (initWorkspace ws) $ \e ->
+        if isAlreadyExistsError e
+          then pure ()
+          else ioError e
+      pure ws
+
+    initWorkspace :: WorkSpace -> IO ()
+    initWorkspace ws = do
+      createDirectory (wsRoot ws)
+      withConnection (getDbPath ws) initDb
 
 router :: AppM App ()
 router = do
   Options {optionsAction} <- asks appOptions
   case optionsAction of
-    Init _ -> initAction
     Config _ -> logInfo "Config"
     ListTodo _ -> listTodoAction
     AddTodo opt -> logDebug (displayShow opt) >> addTodoAction opt
     UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
     TrashTodo opt -> logDebug (displayShow opt) >> trashTodoAction opt
-
-initAction :: AppM App ()
-initAction = do
-  ws <- asks appWorkSpace
-  liftIO $ createDirectoryIfMissing False (wsRoot ws)
-  liftIO $ withConnection (getDbPath ws) (liftIO . initDb)
-  logInfo "Initialized database"
 
 addTodoAction :: AddTodoOpt -> AppM App ()
 addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate, addTodoDetail} = do
@@ -75,20 +85,16 @@ addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate, a
             todoDueDate = addTodoDueDate
           }
           & (\t -> maybe t (\u -> t {todoDetail = u}) addTodoDetailContents)
-  ws <- asks appWorkSpace
-  addedTodo <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
-    (i, createdAt, updatedAt) <- createTodoEntry newTodo nothing_
-    pure (concreteTodoEntity i createdAt newTodo) {todoUpdatedAt = updatedAt}
+  (i, createdAt, updatedAt) <- createTodoEntry newTodo nothing_
+  let addedTodo = concreteTodoEntity i createdAt newTodo {todoUpdatedAt = updatedAt}
   printBuilderLn (display addedTodo)
   printBuilderLn "--"
   logInfo $ "TODO: " <> display (todoId addedTodo) <> " added"
 
 updateTodoAction :: UpdateTodoOpt -> AppM App ()
 updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoPriority, updateTodoDueDate, updateTodoDone} = do
-  ws <- asks appWorkSpace
-  ret <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
-    target <- readTodoEntry (TodoId updateTodoId)
-    forM target updateTargetTodo
+  target <- readTodoEntry (TodoId updateTodoId)
+  ret <- forM target updateTargetTodo
   case ret of
     Nothing -> logError $ "No such todo: " <> display updateTodoId
     Just updatedTodo -> do
@@ -96,7 +102,7 @@ updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoP
       printBuilderLn "--"
       logInfo $ "TODO: " <> display (todoId updatedTodo) <> " updated"
   where
-    updateTargetTodo :: TodoEntity -> AppM Connection TodoEntity
+    updateTargetTodo :: TodoEntity -> AppM App TodoEntity
     updateTargetTodo target = do
       let updatedTodo =
             target

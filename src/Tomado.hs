@@ -18,7 +18,6 @@ import qualified Database.Model.Todo as M (PrimaryKey (TodoId))
 import Database.Query (TodoQueryReturn)
 import Database.Util
   ( Connection,
-    HasConnection (connectionL),
     getAllTodoEntries,
     getTodoEntry,
   )
@@ -26,7 +25,7 @@ import qualified Database.Util as DU (createTodoEntry, throwAwayTodoEntry, updat
 import Import
 
 newtype AppM env a = AppM {unAppM :: RIO env a}
-  deriving (Functor, Applicative, Monad, MonadIO, MonadReader env)
+  deriving (Functor, Applicative, Monad, MonadIO, MonadReader env, MonadUnliftIO)
 
 runAppM :: AppM env a -> env -> IO a
 runAppM appM env = runRIO env (unAppM appM)

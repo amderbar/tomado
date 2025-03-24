@@ -32,8 +32,7 @@ options =
       optionsAction <-
         hsubparser
           $ fold
-            [ command "init" $ info initOpt (progDesc "setup TomaDo working space"),
-              command "config" $ info configOpt (progDesc "display or edit TomaDo configuration"),
+            [ command "config" $ info configOpt (progDesc "display or edit TomaDo configuration"),
               command "list" $ info listTodoOpt (progDesc "display a todo list"),
               command "today" $ info todayTodoOpt (progDesc "display today's todo list"),
               command "add" $ info addTodoOpt (progDesc "make a new todo"),
@@ -42,8 +41,6 @@ options =
               command "trash" $ info trashTodoOpt (progDesc "throw a todo to trash")
             ]
       pure Options {..}
-
-    initOpt = pure (Init InitOpt)
 
     configOpt = pure (Config ConfigOpt)
 
