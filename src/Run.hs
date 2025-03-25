@@ -19,11 +19,12 @@ import Database.Util (Connection, SqlJustable (nothing_), withConnection)
 import Import
 import RIO.Directory (XdgDirectory (XdgData), createDirectory, getXdgDirectory)
 import RIO.FilePath (takeBaseName, (<.>))
-import RIO.Process (mkDefaultProcessContext)
+import RIO.Process (ProcessContext, lookupEnvFromContext, mkDefaultProcessContext, proc, runProcess_)
 import qualified RIO.Text as T
 import System.Environment (getProgName)
-import System.IO (getContents)
+import System.IO (getContents, hPutStr, readFile)
 import System.IO.Error (catchIOError, ioError, isAlreadyExistsError)
+import System.Info (os)
 import Tomado (AppM, runAppM)
 
 run :: Options -> IO ()
@@ -32,6 +33,7 @@ run args = evalContT $ do
   pc <- liftIO mkDefaultProcessContext
   wd <- liftIO $ getXdgDirectory XdgData =<< getProgName
   ws <- liftIO (prepareWorkspace wd)
+  cf <- liftIO $ runRIO pc (prepareConfig ws)
   cn <- ContT $ withConnection (getDbPath ws)
   lf <- ContT (withLogFunc lo)
   let app =
@@ -40,14 +42,15 @@ run args = evalContT $ do
             appProcessContext = pc,
             appOptions = args,
             appConnection = cn,
-            appWorkSpace = ws
+            appWorkSpace = ws,
+            appConfig = cf
           }
   liftIO $ runAppM router app
   where
     prepareWorkspace :: FilePath -> IO WorkSpace
     prepareWorkspace rootPath = do
       let db = takeBaseName rootPath <.> "db"
-        ws = WorkSpace rootPath db
+          ws = WorkSpace rootPath db
       catchIOError (initWorkspace ws) $ \e ->
         if isAlreadyExistsError e
           then pure ()
@@ -59,11 +62,23 @@ run args = evalContT $ do
       createDirectory (wsRoot ws)
       withConnection (getDbPath ws) initDb
 
+    prepareConfig :: WorkSpace -> RIO ProcessContext Config
+    prepareConfig _ = do
+      visual <- lookupEnvFromContext "VISUAL"
+      editor <- lookupEnvFromContext "EDITOR"
+      let configEditor = maybe defaultEditor T.unpack (visual <|> editor)
+      pure Config {configEditor}
+
+    defaultEditor :: String
+    defaultEditor = case os of
+      "windows" -> "notepad"
+      _ -> "/usr/bin/editor"
+
 router :: AppM App ()
 router = do
   Options {optionsAction} <- asks appOptions
   case optionsAction of
-    Config _ -> logInfo "Config"
+    Configure _ -> logInfo "Config"
     ListTodo _ -> listTodoAction
     AddTodo opt -> logDebug (displayShow opt) >> addTodoAction opt
     UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
@@ -92,30 +107,52 @@ addTodoAction AddTodoOpt {addTodoDescription, addTodoPriority, addTodoDueDate, a
   logInfo $ "TODO: " <> display (todoId addedTodo) <> " added"
 
 updateTodoAction :: UpdateTodoOpt -> AppM App ()
-updateTodoAction UpdateTodoOpt {updateTodoId, updateTodoDescription, updateTodoPriority, updateTodoDueDate, updateTodoDone} = do
-  target <- readTodoEntry (TodoId updateTodoId)
-  ret <- forM target updateTargetTodo
-  case ret of
-    Nothing -> logError $ "No such todo: " <> display updateTodoId
-    Just updatedTodo -> do
-      printBuilderLn (display updatedTodo)
-      printBuilderLn "--"
-      logInfo $ "TODO: " <> display (todoId updatedTodo) <> " updated"
-  where
-    updateTargetTodo :: TodoEntity -> AppM App TodoEntity
-    updateTargetTodo target = do
-      let updatedTodo =
-            target
-              & (\t -> maybe t (\u -> t {todoDescription = u}) updateTodoDescription)
-              & (\t -> maybe t (\u -> t {todoPriority = Just u}) updateTodoPriority)
-              -- TODO: How to Due data unset?
-              & (\t -> maybe t (\u -> t {todoDueDate = Just u}) updateTodoDueDate)
-              & (\t -> maybe t (\u -> t {todoDone = u}) updateTodoDone)
-      if target /= updatedTodo
-        then do
-          todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nothing_
-          pure updatedTodo {todoUpdatedAt}
-        else pure target
+updateTodoAction
+  UpdateTodoOpt
+    { updateTodoId,
+      updateTodoDescription,
+      updateTodoPriority,
+      updateTodoDueDate,
+      updateTodoDone,
+      updateTodoDetail
+    } = do
+    target <- readTodoEntry (TodoId updateTodoId)
+    ret <- forM target updateTargetTodo
+    case ret of
+      Nothing -> logError $ "No such todo: " <> display updateTodoId
+      Just updatedTodo -> do
+        printBuilderLn (display updatedTodo)
+        printBuilderLn "--"
+        logInfo $ "TODO: " <> display (todoId updatedTodo) <> " updated"
+    where
+      updateTargetTodo :: TodoEntity -> AppM App TodoEntity
+      updateTargetTodo target = do
+        updateTodoDetailContents <- editTodoDetail target
+        let updatedTodo =
+              target
+                & (\t -> maybe t (\u -> t {todoDescription = u}) updateTodoDescription)
+                & (\t -> maybe t (\u -> t {todoDetail = u}) updateTodoDetailContents)
+                & (\t -> maybe t (\u -> t {todoPriority = Just u}) updateTodoPriority)
+                -- TODO: How to Due data unset?
+                & (\t -> maybe t (\u -> t {todoDueDate = Just u}) updateTodoDueDate)
+                & (\t -> maybe t (\u -> t {todoDone = u}) updateTodoDone)
+        if target /= updatedTodo
+          then do
+            todoUpdatedAt <- Just <$> updateTodoEntry updatedTodo nothing_
+            pure updatedTodo {todoUpdatedAt}
+          else pure target
+
+      editTodoDetail :: TodoEntity -> AppM App (Maybe Text)
+      editTodoDetail target@TodoEntity {todoDetail} = do
+        let TodoId i = todoId target
+        if not updateTodoDetail
+          then pure Nothing
+          else withSystemTempFile ("TODO_" <> show i <> "_DETAIL_EDITTING_") $ \path h -> do
+            liftIO $ hPutStr h $ T.unpack todoDetail
+            liftIO $ hClose h
+            editor <- asks (configEditor . appConfig)
+            proc editor [path] runProcess_
+            Just . T.pack <$> liftIO (readFile path)
 
 trashTodoAction :: TrashTodoOpt -> AppM App ()
 trashTodoAction TrashTodoOpt {trashTodoId} = do

@@ -42,7 +42,7 @@ options =
             ]
       pure Options {..}
 
-    configOpt = pure (Config ConfigOpt)
+    configOpt = pure (Configure ConfigOpt)
 
     listTodoOpt = pure (ListTodo ListTodoOpt)
 
@@ -61,6 +61,7 @@ options =
       updateTodoPriority <- optional optionPriority
       updateTodoDueDate <- optional optionDueDate
       updateTodoDone <- optional (optionDone <|> optionUnDone)
+      updateTodoDetail <- switch (long "detail" <> help "Open editor to edit detail of the To-Do")
       pure (UpdateTodo UpdateTodoOpt {..})
 
     doneTodoOpt = do

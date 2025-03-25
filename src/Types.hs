@@ -10,6 +10,7 @@ module Types
     UpdateTodoOpt (..),
     TrashTodoOpt (..),
     WorkSpace (..),
+    Config (..),
     getDbPath,
     emptyUpdateTodoOpt,
     HasConnection (..),
@@ -29,7 +30,7 @@ data Options = Options
   }
 
 data Action
-  = Config ConfigOpt
+  = Configure ConfigOpt
   | ListTodo ListTodoOpt
   | AddTodo AddTodoOpt
   | UpdateTodo UpdateTodoOpt
@@ -50,6 +51,7 @@ data AddTodoOpt = AddTodoOpt
 data UpdateTodoOpt = UpdateTodoOpt
   { updateTodoId :: !Int,
     updateTodoDescription :: !(Maybe Text),
+    updateTodoDetail :: !Bool,
     updateTodoPriority :: !(Maybe Int),
     updateTodoDueDate :: !(Maybe LocalTime),
     updateTodoDone :: !(Maybe Bool)
@@ -57,7 +59,7 @@ data UpdateTodoOpt = UpdateTodoOpt
   deriving (Show)
 
 emptyUpdateTodoOpt :: Int -> UpdateTodoOpt
-emptyUpdateTodoOpt i = UpdateTodoOpt i Nothing Nothing Nothing Nothing
+emptyUpdateTodoOpt i = UpdateTodoOpt i Nothing False Nothing Nothing Nothing
 
 newtype TrashTodoOpt = TrashTodoOpt
   { trashTodoId :: Int
@@ -72,13 +74,18 @@ data WorkSpace = WorkSpace
 getDbPath :: WorkSpace -> FilePath
 getDbPath ws = wsRoot ws </> wsDbName ws
 
+newtype Config = Config
+  { configEditor :: String
+  }
+
 data App = App
   { appLogFunc :: !LogFunc,
     appProcessContext :: !ProcessContext,
     appOptions :: !Options,
     -- Add other app-specific configuration information here
     appConnection :: !Connection,
-    appWorkSpace :: !WorkSpace
+    appWorkSpace :: !WorkSpace,
+    appConfig :: !Config
   }
 
 instance HasLogFunc App where
