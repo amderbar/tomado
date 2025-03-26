@@ -68,13 +68,6 @@ impl TodoMatter {
         Self { done: true, ..self }
     }
 
-    pub fn set_undone(self) -> Self {
-        Self {
-            done: false,
-            ..self
-        }
-    }
-
     pub fn set_detail(self, detail: String) -> Self {
         Self { detail, ..self }
     }
