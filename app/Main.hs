@@ -35,6 +35,7 @@ options =
             [ command "config" $ info configOpt (progDesc "display or edit TomaDo configuration"),
               command "list" $ info listTodoOpt (progDesc "display a todo list"),
               command "today" $ info todayTodoOpt (progDesc "display today's todo list"),
+              command "view" $ info viewTodoOpt (progDesc "view a todo"),
               command "add" $ info addTodoOpt (progDesc "make a new todo"),
               command "edit" $ info editTodoOpt (progDesc "edit a todo"),
               command "done" $ info doneTodoOpt (progDesc "make a todo done. Alias of 'edit ${ID} --done'"),
@@ -47,6 +48,10 @@ options =
     listTodoOpt = pure (ListTodo ListTodoOpt)
 
     todayTodoOpt = pure (ListTodo ListTodoOpt)
+
+    viewTodoOpt = do
+      viewTodoId <- argument auto (metavar "ID")
+      pure (ViewTodo ViewTodoOpt {..})
 
     addTodoOpt = do
       addTodoDescription <- argument str (metavar "\"{TO-DO DESCRIPTION}\"")

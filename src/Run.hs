@@ -80,6 +80,7 @@ router = do
   case optionsAction of
     Configure _ -> logInfo "Config"
     ListTodo _ -> listTodoAction
+    ViewTodo opt -> logDebug (displayShow opt) >> viewTodoAction opt
     AddTodo opt -> logDebug (displayShow opt) >> addTodoAction opt
     UpdateTodo opt -> logDebug (displayShow opt) >> updateTodoAction opt
     TrashTodo opt -> logDebug (displayShow opt) >> trashTodoAction opt
@@ -171,6 +172,16 @@ listTodoAction = do
   forM_ todos (printBuilderLn . display)
   printBuilderLn "--"
   logInfo $ "Total: " <> display (length todos) <> " todos"
+
+viewTodoAction :: ViewTodoOpt -> AppM App ()
+viewTodoAction ViewTodoOpt {viewTodoId} = do
+  target <- readTodoEntry (TodoId viewTodoId)
+  case target of
+    Nothing -> logError $ "No such todo: " <> display viewTodoId
+    Just t -> do
+      printBuilderLn (display t)
+      printBuilderLn "--"
+      printBuilderLn (display $ todoDetail t)
 
 printBuilderLn :: (MonadIO m) => Utf8Builder -> m ()
 printBuilderLn = liftIO . hPutBuilder stdout . getUtf8Builder . (<> "\n")

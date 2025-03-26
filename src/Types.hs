@@ -6,6 +6,7 @@ module Types
     Action (..),
     ConfigOpt (..),
     ListTodoOpt (..),
+    ViewTodoOpt (..),
     AddTodoOpt (..),
     UpdateTodoOpt (..),
     TrashTodoOpt (..),
@@ -32,6 +33,7 @@ data Options = Options
 data Action
   = Configure ConfigOpt
   | ListTodo ListTodoOpt
+  | ViewTodo ViewTodoOpt
   | AddTodo AddTodoOpt
   | UpdateTodo UpdateTodoOpt
   | TrashTodo TrashTodoOpt
@@ -39,6 +41,11 @@ data Action
 data ConfigOpt = ConfigOpt
 
 data ListTodoOpt = ListTodoOpt
+
+newtype ViewTodoOpt = ViewTodoOpt
+  { viewTodoId :: Int
+  }
+  deriving (Show)
 
 data AddTodoOpt = AddTodoOpt
   { addTodoDescription :: !Text,
