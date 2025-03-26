@@ -11,7 +11,7 @@ use chrono::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TodoMatter {
     pub number: usize,
     pub title: String,
@@ -61,9 +61,13 @@ impl TodoMatter {
         }
     }
 
-    pub fn toggle_done(self) -> Self {
+    pub fn set_done(self) -> Self {
+        Self { done: true, ..self }
+    }
+
+    pub fn set_undone(self) -> Self {
         Self {
-            done: !self.done,
+            done: false,
             ..self
         }
     }
@@ -133,11 +137,15 @@ pub fn done_matter(journal_path: &Path, number: usize) -> io::Result<()> {
 
     let mut matters = collect_matters(&file)?;
 
-    // Remove the todo matter.
-    if number == 0 || number > matters.len() {
-        return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number"));
+    match matters.get(number - 1) {
+        Some(matter) => {
+            if !matter.done {
+                let new_matter = matter.clone().set_done().set_updated_at();
+                matters[number - 1] = new_matter;
+            }
+        }
+        None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
     }
-    matters.remove(number - 1);
 
     // Write the modified task list back into the file.
     file.set_len(0)?;
