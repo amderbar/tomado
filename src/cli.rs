@@ -16,7 +16,7 @@ pub enum Action {
     Add {
         /// The task description text.
         title: String,
-        /// The task description text.
+        /// if the task has detail.
         #[arg(short, long)]
         is_set_detail: bool,
         /// The task priority.
@@ -35,6 +35,21 @@ pub enum Action {
     Edit {
         /// The task ID.
         number: usize,
+        /// The task description text.
+        #[arg(short, long)]
+        title: Option<String>,
+        /// if the task has detail.
+        #[arg(short, long)]
+        is_set_detail: bool,
+        /// The task priority.
+        #[arg(short, long)]
+        priority: Option<i8>,
+        /// The task due.
+        #[arg(short, long)]
+        due: Option<DateTime<Utc>>,
+        /// if The task is done.
+        #[arg(long)]
+        done: bool,
     },
     /// display a todo list.
     List,

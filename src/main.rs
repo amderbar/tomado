@@ -1,4 +1,5 @@
 mod cli;
+mod config;
 mod todo;
 
 use std::{
@@ -10,8 +11,9 @@ use std::{
 
 use anyhow::anyhow;
 use cli::{CommandLineArgs, Parser};
+use config::Config;
 use directories::ProjectDirs;
-use todo::{add_matter, done_matter, list_matters, view_matter};
+use todo::{add_matter, done_matter, edit_matter, list_matters, view_matter};
 
 fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
@@ -27,7 +29,23 @@ fn main() -> anyhow::Result<()> {
             due,
         } => add_matter(journal_path, title, is_set_detail, priority, due),
         cli::Action::Done { number } => done_matter(journal_path, number),
-        cli::Action::Edit { number: _ } => todo!(),
+        cli::Action::Edit {
+            number,
+            title,
+            is_set_detail,
+            priority,
+            due,
+            done,
+        } => edit_matter(
+            &config,
+            journal_path,
+            number,
+            title,
+            is_set_detail,
+            priority,
+            due,
+            done,
+        ),
         cli::Action::List => list_matters(journal_path),
         cli::Action::Today => todo!(),
         cli::Action::View { number } => view_matter(journal_path, number),
@@ -69,29 +87,5 @@ impl WorkSpace {
             Err(e) if e.kind() == io::ErrorKind::AlreadyExists => Ok(()),
             Err(e) => Err(anyhow!(e)),
         }
-    }
-}
-
-struct Config {
-    editor: String,
-}
-
-impl Config {
-    fn new(_config_path: &PathBuf) -> anyhow::Result<Self> {
-        // TODO: Read the config file
-        let editor = env::var("VISUAL")
-            .or(env::var("EDITOR"))
-            .unwrap_or(Self::default_editor());
-        Ok(Self { editor })
-    }
-
-    #[cfg(target_family = "windows")]
-    fn default_editor() -> String {
-        "notepad".to_string()
-    }
-
-    #[cfg(target_family = "unix")]
-    fn default_editor() -> String {
-        "/usr/bin/editor".to_string()
     }
 }

@@ -1,17 +1,20 @@
+use core::fmt;
 use std::{
-    fmt,
-    fs::{File, OpenOptions},
-    io::{self, Error, ErrorKind, Read, Seek, SeekFrom},
+    fs::{self, File, OpenOptions},
+    io::{self, Error, ErrorKind, Read, Seek, SeekFrom, Write},
     path::Path,
+    process::Command,
 };
 
+use crate::config::Config;
 use chrono::{
     serde::{ts_seconds, ts_seconds_option},
     DateTime, Local, Utc,
 };
 use serde::{Deserialize, Serialize};
+use tempfile::NamedTempFile;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct TodoMatter {
     pub number: usize,
     pub title: String,
@@ -126,6 +129,75 @@ pub fn add_matter(
     serde_json::to_writer(file, &matters)?;
 
     Ok(())
+}
+
+pub fn edit_matter(
+    config: &Config,
+    journal_path: &Path,
+    number: usize,
+    title: Option<String>,
+    is_set_detail: bool,
+    priority: Option<i8>,
+    due: Option<DateTime<Utc>>,
+    done: bool,
+) -> io::Result<()> {
+    // Open the file.
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(journal_path)?;
+
+    let mut matters = collect_matters(&file)?;
+
+    match matters.get(number - 1) {
+        Some(matter) => {
+            let mut new_matter = matter.clone();
+            if let Some(title) = title {
+                new_matter = new_matter.set_title(title);
+            }
+            if let Some(p) = priority {
+                new_matter = new_matter.set_priority(p);
+            }
+            if let Some(due) = due {
+                new_matter = new_matter.set_due(due);
+            }
+            if done {
+                new_matter = new_matter.set_done();
+            }
+            if is_set_detail {
+                let new_detail = edit_matter_detail(config, &new_matter)?;
+                new_matter = new_matter.set_detail(new_detail);
+            }
+            if &new_matter == matter {
+                return Ok(());
+            }
+            matters[number - 1] = new_matter.set_updated_at();
+        }
+        None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
+    }
+
+    // Write the modified task list back into the file.
+    file.set_len(0)?;
+    serde_json::to_writer(file, &matters)?;
+    Ok(())
+}
+
+fn edit_matter_detail(config: &Config, matter: &TodoMatter) -> io::Result<String> {
+    let temp_predix = format!("TODO_{}_DETAIL_EDITTING_", matter.number);
+    let mut tempfile = NamedTempFile::with_prefix(temp_predix)?;
+    write!(tempfile, "{}", matter.detail)?;
+    let temp_path = tempfile.path();
+
+    let status = Command::new(&config.editor).arg(temp_path).status()?;
+    if !status.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "Editor did not exit successfully",
+        ));
+    }
+    // エディタで編集された内容が最初に作ったハンドルには反映されないことがあるので、パスを指定して読む
+    let new_detail = fs::read_to_string(&temp_path)?;
+    Ok(new_detail)
 }
 
 pub fn done_matter(journal_path: &Path, number: usize) -> io::Result<()> {
