@@ -15,7 +15,7 @@ import Data.TodoEntity
     todoId,
   )
 import Database.Setup (initDb)
-import Database.Util (Connection, SqlJustable (nothing_), withConnection)
+import Database.Util (SqlJustable (nothing_), withConnection)
 import Import
 import RIO.Directory (XdgDirectory (XdgData), createDirectory, getXdgDirectory)
 import RIO.FilePath (takeBaseName, (<.>))
@@ -156,21 +156,18 @@ updateTodoAction
 
 trashTodoAction :: TrashTodoOpt -> AppM App ()
 trashTodoAction TrashTodoOpt {trashTodoId} = do
-  ws <- asks appWorkSpace
-  ret <- liftIO $ withConnection (getDbPath ws) $ runAppM $ do
-    target <- readTodoEntry (TodoId trashTodoId)
-    forM target trashTargetTodo
-  case ret of
+  target <- readTodoEntry (TodoId trashTodoId)
+  forM_ target trashTargetTodo
+  case target of
     Nothing -> logError $ "No such todo: " <> display trashTodoId
     Just _ -> logInfo $ "TODO: " <> display trashTodoId <> " trashed"
   where
-    trashTargetTodo :: TodoEntity -> AppM Connection ()
+    trashTargetTodo :: TodoEntity -> AppM App ()
     trashTargetTodo target = void $ deleteTodoEntry (todoId target) nothing_
 
 listTodoAction :: AppM App ()
 listTodoAction = do
-  ws <- asks appWorkSpace
-  todos <- liftIO $ withConnection (getDbPath ws) $ runAppM listTodoEntries
+  todos <- listTodoEntries
   forM_ todos (printBuilderLn . display)
   printBuilderLn "--"
   logInfo $ "Total: " <> display (length todos) <> " todos"
