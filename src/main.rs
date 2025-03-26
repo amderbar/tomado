@@ -11,7 +11,7 @@ use std::{
 use anyhow::anyhow;
 use cli::{CommandLineArgs, Parser};
 use directories::ProjectDirs;
-use todo::{add_matter, done_matter, list_matters, TodoMatter};
+use todo::{add_matter, done_matter, list_matters};
 
 fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
@@ -20,7 +20,12 @@ fn main() -> anyhow::Result<()> {
     let config = Config::new(&workspace.config_path)?;
     let journal_path = &workspace.journal_path;
     match action {
-        cli::Action::Add { title } => add_matter(journal_path, TodoMatter::new(title)),
+        cli::Action::Add {
+            title,
+            is_set_detail,
+            priority,
+            due,
+        } => add_matter(journal_path, title, is_set_detail, priority, due),
         cli::Action::Done { number } => done_matter(journal_path, number),
         cli::Action::Edit { number: _ } => todo!(),
         cli::Action::List => list_matters(journal_path),

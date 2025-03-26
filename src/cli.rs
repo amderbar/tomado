@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 pub use clap::Parser;
 use clap::Subcommand;
 
@@ -15,6 +16,15 @@ pub enum Action {
     Add {
         /// The task description text.
         title: String,
+        /// The task description text.
+        #[arg(short, long)]
+        is_set_detail: bool,
+        /// The task priority.
+        #[arg(short, long)]
+        priority: Option<i8>,
+        /// The task due.
+        #[arg(short, long)]
+        due: Option<DateTime<Utc>>,
     },
     /// make a todo done. Alias of 'edit ${ID} --done'.
     Done {

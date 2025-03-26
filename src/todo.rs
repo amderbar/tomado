@@ -1,7 +1,7 @@
 use std::{
     fmt,
     fs::{File, OpenOptions},
-    io::{self, Error, ErrorKind, Seek, SeekFrom},
+    io::{self, Error, ErrorKind, Read, Seek, SeekFrom},
     path::Path,
 };
 
@@ -87,7 +87,13 @@ impl fmt::Display for TodoMatter {
     }
 }
 
-pub fn add_matter(journal_path: &Path, matter: TodoMatter) -> io::Result<()> {
+pub fn add_matter(
+    journal_path: &Path,
+    title: String,
+    is_set_detail: bool,
+    priority: Option<i8>,
+    due: Option<DateTime<Utc>>,
+) -> io::Result<()> {
     let file = OpenOptions::new()
         .read(true)
         .write(true)
@@ -96,7 +102,22 @@ pub fn add_matter(journal_path: &Path, matter: TodoMatter) -> io::Result<()> {
 
     let mut matters = collect_matters(&file)?;
 
-    matters.push(matter);
+    let number = matters.len() + 1;
+    let mut new_matter = TodoMatter::new(number, title);
+    if let Some(p) = priority {
+        new_matter = new_matter.set_priority(p);
+    }
+    if let Some(due) = due {
+        new_matter = new_matter.set_due(due);
+    }
+    if is_set_detail {
+        let mut detail = String::new();
+        println!("Please input the detail of the task.");
+        io::stdin().read_to_string(&mut detail)?;
+        new_matter = new_matter.set_detail(detail);
+    }
+
+    matters.push(new_matter);
     serde_json::to_writer(file, &matters)?;
 
     Ok(())
