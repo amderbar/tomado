@@ -1,19 +1,25 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances #-}
 
-module Database.Model.Event where
+module Database.Model.Event
+  ( EventT (..),
+    Event,
+    EventId,
+    EventParentId,
+  )
+where
 
-import RIO.Time (LocalTime)
 import Data.Int (Int32)
 import Database.Beam
+import RIO.Time (LocalTime)
 
 data EventT f = Event
   { _eventId :: Columnar f Int32,
-    _eventParent  :: PrimaryKey EventT (Nullable f),
+    _eventParent :: PrimaryKey EventT (Nullable f),
     _eventOccurredAt :: Columnar f LocalTime
   }
   deriving (Generic)
@@ -27,14 +33,17 @@ instance Table EventT where
 type Event = EventT Identity
 
 deriving instance Show Event
+
 deriving instance Eq Event
 
 type EventId = PrimaryKey EventT Identity
 
 deriving instance Show EventId
+
 deriving instance Eq EventId
 
 type EventParentId = PrimaryKey EventT (Nullable Identity)
 
 deriving instance Show EventParentId
+
 deriving instance Eq EventParentId
