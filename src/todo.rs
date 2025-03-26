@@ -2,7 +2,7 @@ use std::{
     fmt,
     fs::{File, OpenOptions},
     io::{self, Error, ErrorKind, Seek, SeekFrom},
-    path::PathBuf,
+    path::Path,
 };
 
 use chrono::{serde::ts_seconds, DateTime, Local, Utc};
@@ -32,7 +32,7 @@ impl fmt::Display for TodoMatter {
     }
 }
 
-pub fn add_matter(journal_path: PathBuf, matter: TodoMatter) -> io::Result<()> {
+pub fn add_matter(journal_path: &Path, matter: TodoMatter) -> io::Result<()> {
     let file = OpenOptions::new()
         .read(true)
         .write(true)
@@ -47,7 +47,7 @@ pub fn add_matter(journal_path: PathBuf, matter: TodoMatter) -> io::Result<()> {
     Ok(())
 }
 
-pub fn done_matter(journal_path: PathBuf, number: usize) -> io::Result<()> {
+pub fn done_matter(journal_path: &Path, number: usize) -> io::Result<()> {
     // Open the file.
     let file = OpenOptions::new()
         .read(true)
@@ -68,7 +68,7 @@ pub fn done_matter(journal_path: PathBuf, number: usize) -> io::Result<()> {
     Ok(())
 }
 
-pub fn list_matters(journal_path: PathBuf) -> io::Result<()> {
+pub fn list_matters(journal_path: &Path) -> io::Result<()> {
     // Open the file.
     let file = OpenOptions::new().read(true).open(journal_path)?;
 

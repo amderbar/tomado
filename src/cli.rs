@@ -1,26 +1,45 @@
-use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+pub use clap::Parser;
+use clap::Subcommand;
 
-/// A command line to-do app written in Rust
+/// [x] Manage your To-Do and Work time with @TomaDo
 #[derive(Debug, Parser)]
-#[command(name = "Rusty Journal", version, about, long_about)]
+#[command(name = "TomaDo", version, about, long_about)]
 pub struct CommandLineArgs {
     #[command(subcommand)]
     pub action: Action,
-    /// Use a different journal file.
-    #[arg(short, long)]
-    pub journal_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Subcommand)]
 pub enum Action {
-    /// Write tasks to the journal file.
+    /// make a new todo.
     Add {
         /// The task description text.
         title: String,
     },
-    /// Remove an entry from the journal file by position.
-    Done { number: usize },
-    /// List all tasks in the journal file.
+    /// make a todo done. Alias of 'edit ${ID} --done'.
+    Done {
+        /// The task ID.
+        number: usize,
+    },
+    /// edit a todo.
+    Edit {
+        /// The task ID.
+        number: usize,
+    },
+    /// display a todo list.
     List,
+    /// display today's todo list.
+    Today,
+    /// view a todo detail.
+    View {
+        /// The task ID.
+        number: usize,
+    },
+    /// throw a todo to trash.
+    Trash {
+        /// The task ID.
+        number: usize,
+    },
+    /// display or edit TomaDo configuration.
+    Config,
 }
