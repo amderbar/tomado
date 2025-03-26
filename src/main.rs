@@ -11,7 +11,7 @@ use std::{
 use anyhow::anyhow;
 use cli::{CommandLineArgs, Parser};
 use directories::ProjectDirs;
-use todo::{add_matter, done_matter, list_matters};
+use todo::{add_matter, done_matter, list_matters, view_matter};
 
 fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
@@ -30,7 +30,7 @@ fn main() -> anyhow::Result<()> {
         cli::Action::Edit { number: _ } => todo!(),
         cli::Action::List => list_matters(journal_path),
         cli::Action::Today => todo!(),
-        cli::Action::View { number: _ } => todo!(),
+        cli::Action::View { number } => view_matter(journal_path, number),
         cli::Action::Trash { number: _ } => todo!(),
         cli::Action::Config => todo!(),
     }?;
