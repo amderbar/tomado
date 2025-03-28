@@ -1,25 +1,11 @@
-mod cli;
-mod config;
-mod todo;
-
-use std::{
-    env,
-    fs::create_dir_all,
-    io,
-    path::{Path, PathBuf},
-};
-
-use anyhow::anyhow;
-use cli::{CommandLineArgs, Parser};
-use config::Config;
-use directories::ProjectDirs;
-use todo::{add_matter, done_matter, edit_matter, list_matters, view_matter};
+use tomado::adapters::cli::{self, CommandLineArgs, Parser};
+use tomado::adapters::workspace::WorkSpace;
+use tomado::usecases::{add_matter, done_matter, edit_matter, list_matters, view_matter};
 
 fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
-    let workspace = WorkSpace::new(env!("CARGO_PKG_NAME"))?;
-    workspace.setup()?;
-    let config = Config::new(&workspace.config_path)?;
+    let workspace = WorkSpace::setup(env!("CARGO_PKG_NAME"))?;
+    let config = workspace.load_config()?;
     let journal_path = &workspace.journal_path;
     match action {
         cli::Action::Add {
@@ -53,39 +39,4 @@ fn main() -> anyhow::Result<()> {
         cli::Action::Config => todo!(),
     }?;
     Ok(())
-}
-
-struct WorkSpace {
-    project_dirs: ProjectDirs,
-    config_path: PathBuf,
-    journal_path: PathBuf,
-}
-
-impl WorkSpace {
-    fn new(package_name: &str) -> anyhow::Result<Self> {
-        let project_dirs = ProjectDirs::from("com.github", "amderbar", package_name)
-            .ok_or(anyhow!("Failed to get project directories."))?;
-        let journal_path = project_dirs.data_dir().join("journal.json");
-        let config_path = project_dirs.config_dir().join("config.toml");
-        Ok(Self {
-            project_dirs,
-            config_path,
-            journal_path,
-        })
-    }
-
-    fn setup(&self) -> anyhow::Result<()> {
-        let project_dirs = &self.project_dirs;
-        self.setup_dir(project_dirs.data_dir())?;
-        self.setup_dir(project_dirs.config_dir())?;
-        Ok(())
-    }
-
-    fn setup_dir(&self, dir_path: &Path) -> anyhow::Result<()> {
-        match create_dir_all(dir_path) {
-            Ok(_) => Ok(()),
-            Err(e) if e.kind() == io::ErrorKind::AlreadyExists => Ok(()),
-            Err(e) => Err(anyhow!(e)),
-        }
-    }
 }
