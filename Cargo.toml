@@ -11,5 +11,5 @@ clap = { version = "*", features = ["derive"] }
 chrono = { version = "*", features = ["serde"] }
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
-directories = "6.0.0"
+directories-next = "2.0.0"
 tempfile = "3.19.1"

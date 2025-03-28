@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::anyhow;
-use directories::ProjectDirs;
+use directories_next::ProjectDirs;
 
 use super::config::Config;
 
