@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File, OpenOptions},
-    io::{self, Error, ErrorKind, Read, Seek, SeekFrom, Write},
+    io::{self, Error, ErrorKind, IsTerminal, Read, Seek, SeekFrom, Write},
     path::Path,
     process::Command,
 };
@@ -8,7 +8,10 @@ use std::{
 use chrono::{DateTime, Local, Utc};
 use tempfile::NamedTempFile;
 
-use crate::{adapters::config::Config, entities::todo_matter::TodoMatter};
+use crate::{
+    adapters::config::Config,
+    entities::todo_matter::{TodoMatter, TodoMatterContents},
+};
 
 pub fn add_matter(
     journal_path: &Path,
@@ -17,6 +20,17 @@ pub fn add_matter(
     priority: Option<i8>,
     due: Option<DateTime<Utc>>,
 ) -> io::Result<()> {
+    let detail = if is_set_detail {
+        if io::stdin().is_terminal() {
+            println!("-- Please input the detail of the task. --");
+        }
+        let mut detail = String::new();
+        io::stdin().read_to_string(&mut detail)?;
+        Some(detail)
+    } else {
+        None
+    };
+
     let file = OpenOptions::new()
         .read(true)
         .write(true)
@@ -26,21 +40,12 @@ pub fn add_matter(
     let mut matters = collect_matters(&file)?;
 
     let number = matters.len() + 1;
-    let mut new_matter = TodoMatter::new(number, title);
-    if let Some(p) = priority {
-        new_matter = new_matter.set_priority(p);
-    }
-    if let Some(due) = due {
-        new_matter = new_matter.set_due(due);
-    }
-    if is_set_detail {
-        let mut detail = String::new();
-        println!("Please input the detail of the task.");
-        io::stdin().read_to_string(&mut detail)?;
-        new_matter = new_matter.set_detail(detail);
-    }
+    let contents = TodoMatterContents::new(title)
+        .set_priority(priority)
+        .set_due(due)
+        .set_detail(detail);
 
-    matters.push(new_matter);
+    matters.push(TodoMatter::new(number, contents));
     serde_json::to_writer(file, &matters)?;
 
     Ok(())
@@ -66,27 +71,26 @@ pub fn edit_matter(
 
     match matters.get(number - 1) {
         Some(matter) => {
-            let mut new_matter = matter.clone();
-            if let Some(title) = title {
-                new_matter = new_matter.set_title(title);
-            }
-            if let Some(p) = priority {
-                new_matter = new_matter.set_priority(p);
-            }
-            if let Some(due) = due {
-                new_matter = new_matter.set_due(due);
-            }
-            if done {
-                new_matter = new_matter.set_done();
-            }
-            if is_set_detail {
-                let new_detail = edit_matter_detail(config, &new_matter)?;
-                new_matter = new_matter.set_detail(new_detail);
-            }
-            if &new_matter == matter {
+            let new_detail = if is_set_detail {
+                let new_detail = edit_matter_detail(config, matter)?;
+                Some(new_detail)
+            } else {
+                None
+            };
+
+            let contents = matter
+                .contents
+                .clone()
+                .set_title(title)
+                .set_priority(priority)
+                .set_due(due)
+                .set_done(if done { Some(()) } else { None })
+                .set_detail(new_detail);
+
+            if contents == matter.contents {
                 return Ok(());
             }
-            matters[number - 1] = new_matter.set_updated_at();
+            matters[number - 1] = matter.clone().update(contents);
         }
         None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
     }
@@ -100,7 +104,7 @@ pub fn edit_matter(
 fn edit_matter_detail(config: &Config, matter: &TodoMatter) -> io::Result<String> {
     let temp_predix = format!("TODO_{}_DETAIL_EDITTING_", matter.number);
     let mut tempfile = NamedTempFile::with_prefix(temp_predix)?;
-    write!(tempfile, "{}", matter.detail)?;
+    write!(tempfile, "{}", matter.contents.detail)?;
     let temp_path = tempfile.path();
 
     let status = Command::new(&config.editor).arg(temp_path).status()?;
@@ -126,9 +130,9 @@ pub fn done_matter(journal_path: &Path, number: usize) -> io::Result<()> {
 
     match matters.get(number - 1) {
         Some(matter) => {
-            if !matter.done {
-                let new_matter = matter.clone().set_done().set_updated_at();
-                matters[number - 1] = new_matter;
+            if !matter.is_done() {
+                let contents = matter.contents.clone().set_done(Some(()));
+                matters[number - 1] = matter.clone().update(contents);
             }
         }
         None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
@@ -168,14 +172,14 @@ pub fn view_matter(journal_path: &Path, number: usize) -> io::Result<()> {
 
     let matter = &matters[number - 1];
     println!("{}: {}", number, matter);
-    if let Some(p) = matter.priority {
+    if let Some(p) = matter.contents.priority {
         println!("Priority: {}", p);
     }
-    if let Some(due) = matter.due {
+    if let Some(due) = matter.contents.due {
         println!("Due: {}", due.with_timezone(&Local));
     }
     println!("--");
-    println!("{}", matter.detail);
+    println!("{}", matter.contents.detail);
     println!("Created At: {}", matter.created_at.with_timezone(&Local));
     if let Some(updated_at) = matter.updated_at {
         println!("Updated At: {}", updated_at.with_timezone(&Local));
