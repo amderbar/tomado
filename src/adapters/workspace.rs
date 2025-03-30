@@ -7,7 +7,7 @@ use std::{
 use anyhow::anyhow;
 use directories_next::ProjectDirs;
 
-use crate::ports::TodoRepository;
+use tomado::ports::TodoRepository;
 
 use super::{config::Config, journal_file::TodoRepositoryFile};
 

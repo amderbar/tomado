@@ -1,14 +1,8 @@
-use std::{
-    fs,
-    io::{self, Error, ErrorKind, IsTerminal, Read, Write},
-    process::Command,
-};
+use std::io;
 
 use chrono::{DateTime, Local, Utc};
-use tempfile::NamedTempFile;
 
 use crate::{
-    adapters::config::Config,
     entities::todo_matter::{TodoMatter, TodoMatterContents},
     ports::TodoRepository,
 };
@@ -16,21 +10,10 @@ use crate::{
 pub fn add_matter(
     repo: &impl TodoRepository,
     title: String,
-    is_set_detail: bool,
+    detail: Option<String>,
     priority: Option<i8>,
     due: Option<DateTime<Utc>>,
 ) -> io::Result<()> {
-    let detail = if is_set_detail {
-        if io::stdin().is_terminal() {
-            println!("-- Please input the detail of the task. --");
-        }
-        let mut detail = String::new();
-        io::stdin().read_to_string(&mut detail)?;
-        Some(detail)
-    } else {
-        None
-    };
-
     let contents = TodoMatterContents::new(title)
         .set_priority(priority)
         .set_due(due)
@@ -40,24 +23,14 @@ pub fn add_matter(
 }
 
 pub fn edit_matter(
-    config: &Config,
     repo: &impl TodoRepository,
-    number: usize,
+    matter: TodoMatter,
     title: Option<String>,
-    is_set_detail: bool,
+    detail: Option<String>,
     priority: Option<i8>,
     due: Option<DateTime<Utc>>,
     done: bool,
 ) -> io::Result<()> {
-    let matter = repo.find(number)?;
-
-    let new_detail = if is_set_detail {
-        let new_detail = edit_matter_detail(config, &matter)?;
-        Some(new_detail)
-    } else {
-        None
-    };
-
     let contents = matter
         .contents
         .clone()
@@ -65,27 +38,9 @@ pub fn edit_matter(
         .set_priority(priority)
         .set_due(due)
         .set_done(if done { Some(()) } else { None })
-        .set_detail(new_detail);
+        .set_detail(detail);
 
-    repo.update(number, contents)
-}
-
-fn edit_matter_detail(config: &Config, matter: &TodoMatter) -> io::Result<String> {
-    let temp_predix = format!("TODO_{}_DETAIL_EDITTING_", matter.number);
-    let mut tempfile = NamedTempFile::with_prefix(temp_predix)?;
-    write!(tempfile, "{}", matter.contents.detail)?;
-    let temp_path = tempfile.path();
-
-    let status = Command::new(&config.editor).arg(temp_path).status()?;
-    if !status.success() {
-        return Err(io::Error::new(
-            io::ErrorKind::Other,
-            "Editor did not exit successfully",
-        ));
-    }
-    // エディタで編集された内容が最初に作ったハンドルには反映されないことがあるので、パスを指定して読む
-    let new_detail = fs::read_to_string(&temp_path)?;
-    Ok(new_detail)
+    repo.update(matter.number, contents)
 }
 
 pub fn done_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> {
