@@ -1,7 +1,6 @@
 use std::{
-    fs::{self, File, OpenOptions},
-    io::{self, Error, ErrorKind, IsTerminal, Read, Seek, SeekFrom, Write},
-    path::Path,
+    fs,
+    io::{self, Error, ErrorKind, IsTerminal, Read, Write},
     process::Command,
 };
 
@@ -11,10 +10,11 @@ use tempfile::NamedTempFile;
 use crate::{
     adapters::config::Config,
     entities::todo_matter::{TodoMatter, TodoMatterContents},
+    ports::TodoRepository,
 };
 
 pub fn add_matter(
-    journal_path: &Path,
+    repo: &impl TodoRepository,
     title: String,
     is_set_detail: bool,
     priority: Option<i8>,
@@ -31,29 +31,17 @@ pub fn add_matter(
         None
     };
 
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(journal_path)?;
-
-    let mut matters = collect_matters(&file)?;
-
-    let number = matters.len() + 1;
     let contents = TodoMatterContents::new(title)
         .set_priority(priority)
         .set_due(due)
         .set_detail(detail);
 
-    matters.push(TodoMatter::new(number, contents));
-    serde_json::to_writer(file, &matters)?;
-
-    Ok(())
+    repo.register(contents)
 }
 
 pub fn edit_matter(
     config: &Config,
-    journal_path: &Path,
+    repo: &impl TodoRepository,
     number: usize,
     title: Option<String>,
     is_set_detail: bool,
@@ -61,44 +49,25 @@ pub fn edit_matter(
     due: Option<DateTime<Utc>>,
     done: bool,
 ) -> io::Result<()> {
-    // Open the file.
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(journal_path)?;
+    let matter = repo.find(number)?;
 
-    let mut matters = collect_matters(&file)?;
+    let new_detail = if is_set_detail {
+        let new_detail = edit_matter_detail(config, &matter)?;
+        Some(new_detail)
+    } else {
+        None
+    };
 
-    match matters.get(number - 1) {
-        Some(matter) => {
-            let new_detail = if is_set_detail {
-                let new_detail = edit_matter_detail(config, matter)?;
-                Some(new_detail)
-            } else {
-                None
-            };
+    let contents = matter
+        .contents
+        .clone()
+        .set_title(title)
+        .set_priority(priority)
+        .set_due(due)
+        .set_done(if done { Some(()) } else { None })
+        .set_detail(new_detail);
 
-            let contents = matter
-                .contents
-                .clone()
-                .set_title(title)
-                .set_priority(priority)
-                .set_due(due)
-                .set_done(if done { Some(()) } else { None })
-                .set_detail(new_detail);
-
-            if contents == matter.contents {
-                return Ok(());
-            }
-            matters[number - 1] = matter.clone().update(contents);
-        }
-        None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
-    }
-
-    // Write the modified task list back into the file.
-    file.set_len(0)?;
-    serde_json::to_writer(file, &matters)?;
-    Ok(())
+    repo.update(number, contents)
 }
 
 fn edit_matter_detail(config: &Config, matter: &TodoMatter) -> io::Result<String> {
@@ -119,36 +88,18 @@ fn edit_matter_detail(config: &Config, matter: &TodoMatter) -> io::Result<String
     Ok(new_detail)
 }
 
-pub fn done_matter(journal_path: &Path, number: usize) -> io::Result<()> {
-    // Open the file.
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(journal_path)?;
-
-    let mut matters = collect_matters(&file)?;
-
-    match matters.get(number - 1) {
-        Some(matter) => {
-            if !matter.is_done() {
-                let contents = matter.contents.clone().set_done(Some(()));
-                matters[number - 1] = matter.clone().update(contents);
-            }
-        }
-        None => return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number")),
+pub fn done_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> {
+    let matter = repo.find(number)?;
+    if matter.is_done() {
+        return Ok(());
     }
 
-    // Write the modified task list back into the file.
-    file.set_len(0)?;
-    serde_json::to_writer(file, &matters)?;
-    Ok(())
+    let contents = matter.contents.clone().set_done(Some(()));
+    repo.update(number, contents)
 }
 
-pub fn list_matters(journal_path: &Path) -> io::Result<()> {
-    // Open the file.
-    let file = OpenOptions::new().read(true).open(journal_path)?;
-
-    let matters = collect_matters(&file)?;
+pub fn list_matters(repo: &impl TodoRepository) -> io::Result<()> {
+    let matters = repo.list()?;
 
     if matters.is_empty() {
         println!("Task list is empty.");
@@ -160,17 +111,9 @@ pub fn list_matters(journal_path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub fn view_matter(journal_path: &Path, number: usize) -> io::Result<()> {
-    // Open the file.
-    let file = OpenOptions::new().read(true).open(journal_path)?;
+pub fn view_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> {
+    let matter = repo.find(number)?;
 
-    let matters = collect_matters(&file)?;
-
-    if number == 0 || number > matters.len() {
-        return Err(Error::new(ErrorKind::InvalidInput, "Invalid ToDo Number"));
-    }
-
-    let matter = &matters[number - 1];
     println!("{}: {}", number, matter);
     if let Some(p) = matter.contents.priority {
         println!("Priority: {}", p);
@@ -186,19 +129,4 @@ pub fn view_matter(journal_path: &Path, number: usize) -> io::Result<()> {
     }
 
     Ok(())
-}
-
-fn collect_matters(mut file: &File) -> io::Result<Vec<TodoMatter>> {
-    // Rewind the file before.
-    file.seek(SeekFrom::Start(0))?;
-
-    let matters = match serde_json::from_reader(file) {
-        Ok(matters) => matters,
-        Err(e) if e.is_eof() => Vec::new(),
-        Err(e) => Err(e)?,
-    };
-
-    // Rewind the file after.
-    file.seek(SeekFrom::Start(0))?;
-    Ok(matters)
 }

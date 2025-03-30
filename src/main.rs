@@ -6,15 +6,15 @@ fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
     let workspace = WorkSpace::setup(env!("CARGO_PKG_NAME"))?;
     let config = workspace.load_config()?;
-    let journal_path = &workspace.journal_path;
+    let todo_repo = &workspace.get_todo_repository()?;
     match action {
         cli::Action::Add {
             title,
             is_set_detail,
             priority,
             due,
-        } => add_matter(journal_path, title, is_set_detail, priority, due),
-        cli::Action::Done { number } => done_matter(journal_path, number),
+        } => add_matter(todo_repo, title, is_set_detail, priority, due),
+        cli::Action::Done { number } => done_matter(todo_repo, number),
         cli::Action::Edit {
             number,
             title,
@@ -24,7 +24,7 @@ fn main() -> anyhow::Result<()> {
             done,
         } => edit_matter(
             &config,
-            journal_path,
+            todo_repo,
             number,
             title,
             is_set_detail,
@@ -32,9 +32,9 @@ fn main() -> anyhow::Result<()> {
             due,
             done,
         ),
-        cli::Action::List => list_matters(journal_path),
+        cli::Action::List => list_matters(todo_repo),
         cli::Action::Today => todo!(),
-        cli::Action::View { number } => view_matter(journal_path, number),
+        cli::Action::View { number } => view_matter(todo_repo, number),
         cli::Action::Trash { number: _ } => todo!(),
         cli::Action::Config => todo!(),
     }?;

@@ -7,7 +7,9 @@ use std::{
 use anyhow::anyhow;
 use directories_next::ProjectDirs;
 
-use super::config::Config;
+use crate::ports::TodoRepository;
+
+use super::{config::Config, journal_file::TodoRepositoryFile};
 
 pub struct WorkSpace {
     project_dirs: ProjectDirs,
@@ -37,6 +39,10 @@ impl WorkSpace {
 
     pub fn load_config(&self) -> anyhow::Result<Config> {
         Config::new(&self.config_path)
+    }
+
+    pub fn get_todo_repository(&self) -> anyhow::Result<impl TodoRepository> {
+        TodoRepositoryFile::new(&self.journal_path).map_err(|e| anyhow!(e))
     }
 }
 
