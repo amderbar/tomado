@@ -1,6 +1,6 @@
 use std::io;
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Utc};
 
 use crate::{
     entities::todo_matter::{TodoMatter, TodoMatterContents},
@@ -53,35 +53,10 @@ pub fn done_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> 
     repo.update(number, contents)
 }
 
-pub fn list_matters(repo: &impl TodoRepository) -> io::Result<()> {
-    let matters = repo.list()?;
-
-    if matters.is_empty() {
-        println!("Task list is empty.");
-    } else {
-        for (i, matter) in matters.iter().enumerate() {
-            println!("{}: {}", i + 1, matter);
-        }
-    }
-    Ok(())
+pub fn list_matters(repo: &impl TodoRepository) -> io::Result<Vec<TodoMatter>> {
+    repo.list()
 }
 
-pub fn view_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> {
-    let matter = repo.find(number)?;
-
-    println!("{}: {}", number, matter);
-    if let Some(p) = matter.contents.priority {
-        println!("Priority: {}", p);
-    }
-    if let Some(due) = matter.contents.due {
-        println!("Due: {}", due.with_timezone(&Local));
-    }
-    println!("--");
-    println!("{}", matter.contents.detail);
-    println!("Created At: {}", matter.created_at.with_timezone(&Local));
-    if let Some(updated_at) = matter.updated_at {
-        println!("Updated At: {}", updated_at.with_timezone(&Local));
-    }
-
-    Ok(())
+pub fn view_matter(repo: &impl TodoRepository, number: usize) -> io::Result<TodoMatter> {
+    repo.find(number)
 }

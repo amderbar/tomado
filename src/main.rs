@@ -3,6 +3,7 @@ mod adapters;
 use adapters::{
     cli::{self, CommandLineArgs, Parser},
     input::{from_stdin, with_edit_tempfile},
+    outputs::{DetailedDisplay, OneLineDisplay},
     workspace::WorkSpace,
 };
 use tomado::ports::TodoRepository as _;
@@ -51,9 +52,16 @@ fn main() -> anyhow::Result<()> {
             };
             edit_matter(todo_repo, matter, title, detail, priority, due, done)
         }
-        cli::Action::List => list_matters(todo_repo),
+        cli::Action::List => {
+            let list = list_matters(todo_repo)?;
+            for mttr in list {
+                println!("{}", Into::<OneLineDisplay>::into(mttr));
+            }
+            Ok(())
+        }
         cli::Action::Today => todo!(),
-        cli::Action::View { number } => view_matter(todo_repo, number),
+        cli::Action::View { number } => view_matter(todo_repo, number)
+            .map(|mttr| println!("{}", Into::<DetailedDisplay>::into(mttr))),
         cli::Action::Trash { number: _ } => todo!(),
         cli::Action::Config => todo!(),
     }?;

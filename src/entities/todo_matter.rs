@@ -1,8 +1,6 @@
-use core::fmt;
-
 use chrono::{
     serde::{ts_seconds, ts_seconds_option},
-    DateTime, Local, Utc,
+    DateTime, Utc,
 };
 use serde::{Deserialize, Serialize};
 
@@ -42,18 +40,6 @@ impl TodoMatter {
 
     pub fn is_done(&self) -> bool {
         self.contents.done
-    }
-}
-
-impl fmt::Display for TodoMatter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let created_at = self.created_at.with_timezone(&Local).format("%F %H:%M");
-        let done_mark = if self.contents.done { "x" } else { " " };
-        write!(
-            f,
-            "[{}] {:<50} [{}]",
-            done_mark, self.contents.title, created_at
-        )
     }
 }
 
