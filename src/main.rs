@@ -7,7 +7,9 @@ use adapters::{
     workspace::WorkSpace,
 };
 use tomado::ports::TodoRepository as _;
-use tomado::usecases::{add_matter, done_matter, edit_matter, list_matters, view_matter};
+use tomado::usecases::{
+    add_matter, done_matter, edit_matter, list_matters, trash_matter, view_matter,
+};
 
 fn main() -> anyhow::Result<()> {
     let CommandLineArgs { action } = CommandLineArgs::parse();
@@ -62,7 +64,7 @@ fn main() -> anyhow::Result<()> {
         cli::Action::Today => todo!(),
         cli::Action::View { number } => view_matter(todo_repo, number)
             .map(|mttr| println!("{}", Into::<DetailedDisplay>::into(mttr))),
-        cli::Action::Trash { number: _ } => todo!(),
+        cli::Action::Trash { number } => trash_matter(todo_repo, number),
         cli::Action::Config => todo!(),
     }?;
     Ok(())

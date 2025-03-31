@@ -7,6 +7,7 @@ pub trait TodoRepository {
     fn find(&self, number: usize) -> io::Result<TodoMatter>;
     fn register(&self, matter_contents: TodoMatterContents) -> io::Result<()>;
     fn update(&self, number: usize, matter_contents: TodoMatterContents) -> io::Result<()>;
+    fn delete(&self, number: usize) -> io::Result<()>;
 }
 
 pub trait HasTodoRepository {

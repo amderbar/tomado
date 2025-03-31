@@ -116,6 +116,11 @@ impl JournalSchema {
             format!("Todo {} is not found", number),
         ))
     }
+
+    fn delete(&mut self, number: usize) -> io::Result<()> {
+        self.matters.retain(|m| m.number != number);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq)]

@@ -53,6 +53,10 @@ pub fn done_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> 
     repo.update(number, contents)
 }
 
+pub fn trash_matter(repo: &impl TodoRepository, number: usize) -> io::Result<()> {
+    repo.delete(number)
+}
+
 pub fn list_matters(repo: &impl TodoRepository) -> io::Result<Vec<TodoMatter>> {
     repo.list()
 }
