@@ -1,0 +1,15 @@
+{
+    "name": "TomaDo Dev Container",
+    "image": "mcr.microsoft.com/devcontainers/rust:1",
+    "features": {},
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "dbcode.dbcode",
+                "GitHub.copilot",
+                "GitHub.copilot-chat"
+            ]
+        }
+    }
+}

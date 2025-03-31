@@ -1,0 +1,15 @@
+[package]
+name = "tomado"
+version = "0.1.0"
+edition = "2021"
+authors = ["amderbar <amderbar@gmail.com>"]
+license-file = "LICENSE"
+
+[dependencies]
+anyhow = "*"
+clap = { version = "*", features = ["derive"] }
+chrono = { version = "*", features = ["serde"] }
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+directories-next = "2.0.0"
+tempfile = "3.19.1"
